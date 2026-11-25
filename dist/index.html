@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102c2c"><title>HANEDAN · Topkapı Sarayı</title>
+<link rel="icon" href="data:,"><link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header><div class="brand"><span class="emblem" aria-hidden="true">☾</span><span>HANEDAN</span></div><nav aria-label="Ana menü"><button data-view="game" class="selected"><i data-icon="game"></i>Oyun</button><button data-view="map"><i data-icon="map"></i>Saray planı</button><button data-view="log"><i data-icon="book"></i>Vekayinâme</button></nav><div class="headtools"><button id="sound" class="iconbtn" aria-label="Sesi aç" title="Sesi aç"><i data-icon="mute"></i></button><button id="pause" class="iconbtn" aria-label="Duraklat" title="Duraklat"><i data-icon="pause"></i></button></div></header>
+<main>
+<section class="heading"><div><div class="eyebrow"><span class="line"></span> İSTANBUL <b>◆</b> 1520</div><h1>Topkapı Sarayı</h1></div><div class="clock"><i data-icon="sun"></i><div><strong id="day">30 Eylül 1520</strong><small id="time">08.00 · Sabah</small></div></div></section>
+<div class="layout"><section class="worldcol"><div class="frame"><div id="scene"><canvas id="world" aria-label="Saray oyun alanı. Hareket için yön tuşlarını veya tıklamayı kullan." tabindex="0"></canvas><div class="map-label"><span class="gold-dot"></span><span id="area">DİVAN MEYDANI</span></div><div class="compass" aria-hidden="true"><b>K</b><i>✥</i></div><div class="worldmessage" id="message" role="status"></div><div id="prompt"></div></div><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span></div>
+<div class="actionbar"><button id="interact"><i data-icon="hand"></i>Etkileş <kbd>E</kbd></button><button id="orders"><i data-icon="scroll"></i>Ferman ver <kbd>F</kbd></button><button id="mapkey"><i data-icon="map"></i>Saray planı <kbd>M</kbd></button></div>
+</section><aside><section class="ruler"><div class="panelcap"><i data-icon="crown"></i> HÜKÜMDAR</div><div class="identity"><canvas id="portrait" width="64" height="74" aria-label="Kanuni Sultan Süleyman portresi"></canvas><div><small>Osmanlı Padişahı</small><h2>Kanuni Sultan<br>Süleyman</h2></div></div><div class="resources"><div><span><i data-icon="coins"></i>Hazine</span><strong id="gold"></strong></div><div><span><i data-icon="seal"></i>İtibar</span><strong id="esteem"></strong></div><div><span><i data-icon="leaf"></i>Huzur</span><strong id="peace"></strong></div></div></section>
+<section class="people"><div class="panelhead"><div class="panelcap"><i data-icon="people"></i>SARAY ERKÂNI</div><span id="nearcount"></span></div><div id="people"></div></section></aside></div>
+<footer><div><span class="statusdot"></span><span id="savestate">Otomatik kayıt açık</span></div><div><kbd>W A S D</kbd> Hareket <span class="footsep">·</span> <kbd>Shift</kbd> Koş <span class="footsep">·</span> <button id="help">Kontroller <kbd>?</kbd></button></div></footer>
+</main>
+<dialog id="dialog"><div class="dialoghead"><small id="modalcap"></small><button id="close" aria-label="Kapat">×</button></div><h2 id="modaltitle"></h2><div id="modalbody"></div></dialog>
+<script type="module" src="./src/main.js"></script></body></html>
