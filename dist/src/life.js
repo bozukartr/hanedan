@@ -1,4 +1,4 @@
-import {places} from './district.js';
+import {places} from './district.js?v=2';
 
 export function initialLife(){
  return {stamina:90,thirst:75,bread:1,water:1,cargo:false,deliveries:0,

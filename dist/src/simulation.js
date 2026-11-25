@@ -1,6 +1,6 @@
-import {cast,rooms,orders} from './data.js';
-import {path,travel,walkable} from './navigation.js';
-import {initialLife, targets, moveSpeed, updateNeeds, dismount} from './life.js';
+import {cast,rooms,orders} from './data.js?v=2';
+import {path,travel,walkable} from './navigation.js?v=2';
+import {initialLife, targets, moveSpeed, updateNeeds, dismount} from './life.js?v=2';
 const SAVE='hanedan.saray.v1';
 export function fresh(){
  return {version:1,life:initialLife(),minutes:480,player:{room:'court',x:391,y:220,face:1},gold:12400,esteem:72,peace:81,

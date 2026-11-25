@@ -1,6 +1,6 @@
-import {houses,stalls} from './district.js';
-import {rooms} from './data.js';
-import {targets} from './life.js';
+import {houses,stalls} from './district.js?v=2';
+import {rooms} from './data.js?v=2';
+import {targets} from './life.js?v=2';
 
 export function chart(c,game,cx,cy,scale){
  const w=c.canvas.width,h=c.canvas.height,p=game.s.player,r=rooms[p.room];

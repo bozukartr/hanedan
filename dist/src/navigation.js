@@ -1,5 +1,5 @@
-import {rooms} from './data.js';
-import {terrainBlocked} from './district.js';
+import {rooms} from './data.js?v=2';
+import {terrainBlocked} from './district.js?v=2';
 export function walkable(room,x,y){
  const r=rooms[room], [l,t,h,b]=r.bounds;
  if(x<l||x>h||y<t||y>b)return false;

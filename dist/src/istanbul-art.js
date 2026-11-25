@@ -1,5 +1,5 @@
-import {rect,poly,oval,seed,tree,star} from './art.js';
-import {houses,stalls} from './district.js';
+import {rect,poly,oval,seed,tree,star} from './art.js?v=2';
+import {houses,stalls} from './district.js?v=2';
 
 function road(c,points,size,color){
  c.strokeStyle=color;c.lineWidth=size;c.lineCap='round';c.lineJoin='round';c.beginPath();

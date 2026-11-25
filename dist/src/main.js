@@ -1,10 +1,10 @@
-import {rooms,orders,clockText,dateText,WIDTH,HEIGHT} from './data.js';
-import {Palace} from './simulation.js';
-import {Renderer} from './render.js';
-import {targets,usePlace,dismount,consume} from './life.js';
-import {districtName,outerWidth,outerHeight} from './district.js';
-import {chart} from './cartography.js';
-import {icons} from './icons.js';
+import {rooms,orders,clockText,dateText,WIDTH,HEIGHT} from './data.js?v=2';
+import {Palace} from './simulation.js?v=2';
+import {Renderer} from './render.js?v=2';
+import {targets,usePlace,dismount,consume} from './life.js?v=2';
+import {districtName,outerWidth,outerHeight} from './district.js?v=2';
+import {chart} from './cartography.js?v=2';
+import {icons} from './icons.js?v=2';
 const $=id=>document.getElementById(id),world=$('world'),dialog=$('dialog'),body=$('modalbody');
 let storage;try{storage=window.localStorage}catch{}
 const game=Palace.load(storage),s=game.s,renderer=new Renderer(world),keys=new Set();

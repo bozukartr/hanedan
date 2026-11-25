@@ -1,7 +1,7 @@
-import {rooms,WIDTH as W,HEIGHT as H} from './data.js';
-import {seed,rect,poly,oval,star,arch,stone,palace,bed,tree,fountain,person} from './art.js';
-import {outerWidth,outerHeight} from './district.js';
-import {landscape,streetObjects,horse,carriedSack} from './istanbul-art.js';
+import {rooms,WIDTH as W,HEIGHT as H} from './data.js?v=2';
+import {seed,rect,poly,oval,star,arch,stone,palace,bed,tree,fountain,person} from './art.js?v=2';
+import {outerWidth,outerHeight} from './district.js?v=2';
+import {landscape,streetObjects,horse,carriedSack} from './istanbul-art.js?v=2';
 function layer(w=W,h=H){const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas.getContext('2d')}
 function floor(c,r){
  rect(c,0,0,W,H,'#c8b996');
