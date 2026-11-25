@@ -1,6 +1,6 @@
 export const WIDTH=800, HEIGHT=480;
 export const rooms={
- court:{name:'Divan Meydanı',type:'court',bounds:[8,164,792,470],
+ court:{name:'Divan Meydanı',type:'court',bounds:[8,164,1590,907],
   beds:[[20,205,158,83],[619,205,160,83],[22,369,145,85],[635,369,142,85]],
   fountain:[400,281,45,22],exits:[
    {x:402,y:166,to:'council',arrive:[400,409],label:'Kubbealtı'},
@@ -17,7 +17,11 @@ export const cast=[
  {id:'vizier',name:'Pîrî Mehmed Paşa',role:'Sadrazam',color:'#50634a',home:'council',start:[486,291],line:'Arzınız üzere divanı burada toplayabiliriz, hünkârım.',routes:[[486,291],[516,215],[282,306]]},
  {id:'cook',name:'Ali Usta',role:'Aşçıbaşı',color:'#8b6b47',home:'kitchen',start:[278,247],line:'Kazanlar hazır. İmaret için buğday ayırırsanız sofrayı genişletiriz.',routes:[[278,247],[520,245],[495,346],[226,323]]},
  {id:'gardener',name:'Hızır Usta',role:'Bahçıvan',color:'#576e42',home:'garden',start:[338,213],line:'Lale tarhlarının toprağı havalandı. Yeni fidanlar için yer açtım.',routes:[[338,213],[330,385],[490,386],[485,204]]},
- {id:'page',name:'İlyas',role:'İçoğlanı',color:'#6e577d',home:'garden',start:[475,392],line:'Hasbahçe yolundan saray meydanına çıkılır, sultanım.',routes:[[475,392],[506,273],[298,273],[322,387]]}
+ {id:'page',name:'İlyas',role:'İçoğlanı',color:'#6e577d',home:'garden',start:[475,392],line:'Hasbahçe yolundan saray meydanına çıkılır, sultanım.',routes:[[475,392],[506,273],[298,273],[322,387]]},
+ {id:'groom',name:'Osman',role:'Seyis',color:'#845434',home:'court',start:[908,265],line:'Kırat meydanda hazır, hünkârım. İndiğiniz yerde sizi bekler.',routes:[[908,265],[806,328],[537,383],[845,290]]},
+ {id:'baker',name:'Hatice Usta',role:'Fırıncı',color:'#954133',home:'court',start:[968,403],line:'Tezgâhta taze ekmek var. Un çuvalları iskeleden gelir.',routes:[[968,403],[985,430],[944,439],[959,400]]},
+ {id:'porter',name:'İshak',role:'İskele hamalı',color:'#416a7b',home:'court',start:[1445,740],line:'Sarayın unu burada. Çuvalı omuzlayıp mutfakta aşçıya verebilirsiniz.',routes:[[1445,740],[1353,772],[1230,759],[1425,749]]},
+ {id:'weaver',name:'Emine',role:'Dokumacı',color:'#617954',home:'court',start:[1090,415],line:'Bursa bezleri bugün iskeleden geldi. Tezgâhımı ikindiye kadar açık tutarım.',routes:[[1090,415],[1180,411],[1107,429],[1092,406]]}
 ];
 export const orders=[
  {id:'meal',name:'İmaret sofrası kur',detail:'240 akçe · Aşçıbaşı meydana gelir ve halka sofra açar.',cost:240,esteem:2,peace:5},

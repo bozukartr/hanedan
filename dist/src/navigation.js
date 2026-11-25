@@ -1,7 +1,9 @@
 import {rooms} from './data.js';
+import {terrainBlocked} from './district.js';
 export function walkable(room,x,y){
  const r=rooms[room], [l,t,h,b]=r.bounds;
  if(x<l||x>h||y<t||y>b)return false;
+ if(room==='court'&&terrainBlocked(x,y))return false;
  if(r.fountain){const [cx,cy,a,d]=r.fountain;if(((x-cx)/(a+4))**2+((y-cy)/(d+3))**2<1)return false}
  return !r.beds.some(([a,b,w,h])=>x>a-3&&x<a+w+3&&y>b-3&&y<b+h+3);
 }

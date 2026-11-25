@@ -45,3 +45,7 @@ Ekonomi, diplomasi, savaş, hanedan ve veraset bu arayüz üzerinden genişletil
 ## Testler
 
 Node.js 20 veya yenisiyle proje kökünde `npm test` çalıştır. Testler geçitleri, çarpışmayı, günlük rotaları, fermanların maliyetini ve NPC hareketini, kayıt yüklemeyi ve sistem olaylarını kontrol eder.
+
+## İstanbul ve oyun içi HUD
+
+Kamera oyuncuyu izler. Aynı dış haritada saraydan doğuya yürüyerek ahırlara ve çarşıya, güneydoğuya yürüyerek iskeleye ulaşılır. Sol alttaki radara dokunarak haritayı açabilir ve işaret koyabilirsin. Tab hükümdar çarkını, I heybeyi, Esc oyun menüsünü açar. Kırat’ın yanında E ile bin, R ile in. E ile çeşmede matara doldurabilir, çarşıda ekmek alabilir veya iskele ambarından mutfağa un taşıyabilirsin.

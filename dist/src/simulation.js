@@ -1,8 +1,9 @@
 import {cast,rooms,orders} from './data.js';
 import {path,travel,walkable} from './navigation.js';
+import {initialLife, targets, moveSpeed, updateNeeds, dismount} from './life.js';
 const SAVE='hanedan.saray.v1';
 export function fresh(){
- return {version:1,minutes:480,player:{room:'court',x:399,y:358,face:1},gold:12400,esteem:72,peace:81,
+ return {version:1,life:initialLife(),minutes:480,player:{room:'court',x:391,y:220,face:1},gold:12400,esteem:72,peace:81,
  events:[{time:480,text:'Sultan Süleyman Divan Meydanı’na çıktı.'}],issued:{},lastGrant:-1,
  npcs:cast.map((d,i)=>({id:d.id,room:d.home,x:d.start[0],y:d.start[1],face:i%2?-1:1,point:0,wait:3+i*2,path:[],duty:'routine',until:0})),sound:false};
 }
@@ -11,7 +12,7 @@ export function restore(raw){
  try{const v=JSON.parse(raw);if(v.version!==1||!v.player||!rooms[v.player.room]||!walkable(v.player.room,v.player.x,v.player.y)||!Number.isFinite(v.player.x+v.player.y))return initial;
  for(const k of ['gold','esteem','peace','minutes'])if(!Number.isFinite(v[k])||v[k]<0)return initial;
  if(!Array.isArray(v.npcs)||!Array.isArray(v.events)||!v.issued)return initial;
- return {...initial,...v,events:v.events.filter(e=>typeof e.text==='string'&&Number.isFinite(e.time)).slice(-100),npcs:initial.npcs.map(n=>{
+ return {...initial,...v,life:{...initial.life,...v.life,horse:{...initial.life.horse,...v.life?.horse}},events:v.events.filter(e=>typeof e.text==='string'&&Number.isFinite(e.time)).slice(-100),npcs:initial.npcs.map(n=>{
  const a=v.npcs.find(x=>x.id===n.id);
  return a&&rooms[a.room]&&Number.isFinite(a.x+a.y)&&walkable(a.room,a.x,a.y)?{...n,...a,path:[],wait:0}:n})};
  }catch{return initial}
@@ -37,20 +38,22 @@ export class Palace {
  routine(n){const d=this.note(n);this.assign(n,'routine',d.home,d.start,0)}
  enter(exit){
  const p=this.s.player;if(!rooms[p.room].exits.includes(exit)||Math.hypot(exit.x-p.x,exit.y-p.y)>34)return false;
+ if(this.s.life.mounted)dismount(this);
  Object.assign(p,{room:exit.to,x:exit.arrive[0],y:exit.arrive[1]});this.motion=[];this.target=null;
  this.log(rooms[p.room].name+' bölgesine girdin.');return true;
  }
  moveTo(x,y,target=null){const p=this.s.player;this.motion=path(p.room,[p.x,p.y],[x,y]);this.target=this.motion.length?target:null;return !!this.motion.length}
  nearby(){const p=this.s.player;
- return [...this.s.npcs.filter(n=>n.room===p.room).map(n=>({kind:'npc',item:n,x:n.x,y:n.y})),...rooms[p.room].exits.map(e=>({kind:'exit',item:e,x:e.x,y:e.y}))].map(a=>({...a,d:Math.hypot(a.x-p.x,a.y-p.y)})).filter(a=>a.d<=34).sort((a,b)=>a.d-b.d)[0]}
+ return [...targets(this.s).map(e=>({kind:'place',item:e,x:e.x,y:e.y})),...this.s.npcs.filter(n=>n.room===p.room).map(n=>({kind:'npc',item:n,x:n.x,y:n.y})),...rooms[p.room].exits.map(e=>({kind:'exit',item:e,x:e.x,y:e.y}))].map(a=>({...a,d:Math.hypot(a.x-p.x,a.y-p.y)})).filter(a=>a.d<=34).sort((a,b)=>a.d-b.d)[0]}
  tick(dt,dx=0,dy=0,run=false){
  const s=this.s,p=s.player,day=Math.floor(s.minutes/1440);s.minutes+=dt*1.3;p.moving=false;
  if(Math.floor(s.minutes/1440)>day){s.gold+=360;this.log('Günlük saray tahsisatı hazineye girdi: 360 akçe.')}
- if(dx||dy){this.motion=[];this.target=null;const len=Math.hypot(dx,dy),step=dt*(run?112:69)/len;
+ if(dx||dy){this.motion=[];this.target=null;const len=Math.hypot(dx,dy),step=dt*moveSpeed(s.life,run)/len;
  if(walkable(p.room,p.x+dx*step,p.y)){p.x+=dx*step;p.moving=true}
  if(walkable(p.room,p.x,p.y+dy*step)){p.y+=dy*step;p.moving=true}
- if(dx)p.face=Math.sign(dx);
- }else if(this.motion.length){p.path=this.motion;travel(p,dt,75)}
+ p.heading=Math.atan2(dx,-dy);if(dx)p.face=Math.sign(dx);
+ }else if(this.motion.length){p.path=this.motion;const [gx,gy]=p.path[0];p.heading=Math.atan2(gx-p.x,p.y-gy);travel(p,dt,moveSpeed(s.life,false))}
+ updateNeeds(s,dt,run);
  for(const n of s.npcs)this.tickNPC(n,dt);
  for(const sys of this.systems.values())sys.tick?.(dt,this);
  }

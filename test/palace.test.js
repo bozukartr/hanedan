@@ -5,7 +5,7 @@ import {rooms,dateText} from '../dist/src/data.js';
 import {walkable,path,clear} from '../dist/src/navigation.js';
 function advance(game,seconds){for(let i=0;i<seconds*20;i++)game.tick(.05)}
 test('Başlangıç tarihi, karakter konumu ve yeni kayıt',()=>{
- const s=fresh();assert.equal(dateText(s.minutes),'30 Eylül 1520');assert.equal(s.player.room,'court');assert.equal(s.npcs.length,7);
+ const s=fresh();assert.equal(dateText(s.minutes),'30 Eylül 1520');assert.equal(s.player.room,'court');assert.equal(s.npcs.length,11);
  for(const n of s.npcs)assert.ok(walkable(n.room,n.x,n.y),n.id)
 });
 test('Tüm geçitler ve varış noktaları ulaşılabilir',()=>{
@@ -18,7 +18,7 @@ test('Yol bulma çeşmenin çevresini dolaşır',()=>{
  const start=[400,350],end=[402,166];assert.ok(!clear('court',start,end));assert.ok(!walkable('court',400,281));let from=start;let route=path('court',start,end);assert.ok(route.length>1);
  for(const to of route){assert.ok(clear('court',from,to));from=to}assert.deepEqual(from,end)
 });
-test('Elle hareket çarpışmaları korur',()=>{const g=new Palace();for(let i=0;i<400;i++)g.tick(.03,0,-1);assert.ok(g.s.player.y>305);assert.ok(walkable('court',g.s.player.x,g.s.player.y))});
+test('Elle hareket çarpışmaları korur',()=>{const g=new Palace();Object.assign(g.s.player,{x:399,y:358});for(let i=0;i<400;i++)g.tick(.03,0,-1);assert.ok(g.s.player.y>305);assert.ok(walkable('court',g.s.player.x,g.s.player.y))});
 test('Ferman maliyeti bir kez ödenir ve aşçı meydana yürür',()=>{
  const g=new Palace();assert.ok(g.order('meal'));assert.ok(!g.order('meal'));assert.equal(g.s.gold,12160);advance(g,90);const cook=g.s.npcs.find(n=>n.id==='cook');assert.equal(cook.room,'court');assert.ok(Math.hypot(cook.x-515,cook.y-355)<3);
  g.s.gold=0;assert.ok(!g.order('plant'))
@@ -38,3 +38,6 @@ test('Kayıt ve bozuk kayıt kurtarma',()=>{
 test('Yeni sistemler ferman olaylarını ve simülasyon zamanını alır',()=>{
  const g=new Palace(),seen=[];g.register('diplomasi',{event:(name)=>seen.push(name),tick:(dt)=>seen.push(dt)});g.order('plant');g.tick(.01);assert.deepEqual(seen,['record','decree',.01])
 });
+import {initialLife,usePlace,dismount,consume} from '../dist/src/life.js';
+test('Eski kayıt yeni heybe ve at durumunu alır',()=>{const old=fresh();delete old.life;assert.deepEqual(restore(JSON.stringify(old)).life,initialLife())});
+test('At, çuval, mutfak ve heybe',()=>{const g=new Palace(),p=g.s.player,l=g.s.life;Object.assign(p,l.horse);assert.equal(usePlace(g,'horse'),'');assert.ok(l.mounted);assert.ok(dismount(g));Object.assign(p,{x:1430,y:750});assert.equal(usePlace(g,'sack'),'');assert.ok(l.cargo);Object.assign(p,{room:'kitchen',x:305,y:247});assert.equal(usePlace(g,'oven'),'');assert.equal(l.deliveries,1);assert.equal(l.cargo,false);assert.ok(consume(g,'bread'))});

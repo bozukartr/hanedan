@@ -1,6 +1,8 @@
 import {rooms,WIDTH as W,HEIGHT as H} from './data.js';
 import {seed,rect,poly,oval,star,arch,stone,palace,bed,tree,fountain,person} from './art.js';
-function layer(){const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;return canvas.getContext('2d')}
+import {outerWidth,outerHeight} from './district.js';
+import {landscape,streetObjects,horse,carriedSack} from './istanbul-art.js';
+function layer(w=W,h=H){const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas.getContext('2d')}
 function floor(c,r){
  rect(c,0,0,W,H,'#c8b996');
  const colors=['#d6c59e','#d6c49d','#d4c39b','#d3c19b','#d9c8a2','#d3bf98','#d7c5a1'];
@@ -37,8 +39,10 @@ function outdoor(c,key,r){
  }
 }
 function scenery(key){
- const c=layer(),r=seed(key==='court'?1520:758);const room=rooms[key],drawables=[];
+ const courtyard=key==='court';
+ const c=layer(courtyard?outerWidth:W,courtyard?outerHeight:H),r=seed(key==='court'?1520:758);const room=rooms[key],drawables=[];
  if(room.type==='inside')inside(c,key,r);else{
+ if(courtyard){landscape(c);drawables.push(...streetObjects())}
  outdoor(c,key,r);
  room.beds.forEach(([x,y,w,h],j)=>{
  for(let i=0;i<(key==='garden'?5:3);i++){
@@ -53,24 +57,51 @@ function scenery(key){
  return {base:c.canvas,drawables};
 }
 export class Renderer{
- constructor(canvas){this.c=canvas.getContext('2d');canvas.width=W;canvas.height=H;this.cache=new Map();this.c.imageSmoothingEnabled=false}
+ project(clientX,clientY){
+  const canvas=this.c.canvas,box=canvas.getBoundingClientRect();
+  return [this.camX+(clientX-box.left)*canvas.width/box.width,this.camY+(clientY-box.top)*canvas.height/box.height];
+ }
+ constructor(canvas){this.camX=0;this.camY=0;this.c=canvas.getContext('2d');canvas.width=W;canvas.height=H;this.cache=new Map();this.c.imageSmoothingEnabled=false}
  render(game,t){
  const {s}=game,p=s.player,key=p.room,room=rooms[key],c=this.c;
  if(!this.cache.has(key))this.cache.set(key,scenery(key));
- const scene=this.cache.get(key);c.drawImage(scene.base,0,0);
+ const scene=this.cache.get(key), canvas=c.canvas;
+ const ratio=canvas.clientWidth/Math.max(1,canvas.clientHeight);
+ const vw=Math.min(780,Math.round(440*ratio)),vh=Math.min(scene.base.height,Math.round(vw/ratio));
+ if(canvas.width!==vw||canvas.height!==vh){canvas.width=vw;canvas.height=vh;c.imageSmoothingEnabled=false}
+ this.camX=Math.round(Math.max(0,Math.min(scene.base.width-vw,p.x-vw/2)));
+ this.camY=Math.round(Math.max(0,Math.min(scene.base.height-vh,p.y-vh*.56)));
+ c.setTransform(1,0,0,1,-this.camX,-this.camY);c.drawImage(scene.base,0,0);
+ 
  if(key==='garden'&&game.active('plant'))for(const [x,y,w,h] of room.beds)for(let i=0;i<w-30;i+=7){rect(c,x+12+i,y+h-18,1,5,'#436b46');oval(c,x+12+i,y+h-19,2,2,'#b65655')}
  if(key==='court'&&game.active('meal')){rect(c,491,341,48,8,'#8c6643');rect(c,493,349,3,5,'#68523b');rect(c,533,349,3,5,'#68523b');for(let i=0;i<4;i++)oval(c,497+i*10,342,4,2,'#d6bc91')}
- const items=scene.drawables.slice();
+ const items=scene.drawables.filter(item=>item.y>=this.camY-15&&item.y<this.camY+vh+110);
+ const l=s.life,steed=l.horse;
+ if(!l.mounted&&steed.room===key)items.push({y:steed.y,draw:ctx=>horse(ctx,steed.x,steed.y,steed.face,false,t)});
+ 
  if(room.fountain)items.push({y:room.fountain[1]+8,draw:ctx=>fountain(ctx,room.fountain,t)});
  for(const n of s.npcs.filter(n=>n.room===key))items.push({y:n.y,draw:ctx=>person(ctx,n.x,n.y,game.note(n).color,n.face,n.moving,t+n.id.length,n.id)});
  items.push({y:p.y,draw:ctx=>{
- const a=p.x,b=p.y;oval(ctx,a,b,15,5,'#f7da81');oval(ctx,a,b,13,4,'#a4956b');oval(ctx,a,b,11,3,'#d6c29b');person(ctx,a,b,'#a04b3e',p.face,p.moving,t,'sultan');
- const x=Math.round(a),y=Math.round(b)-43;poly(ctx,[[x-4,y-4],[x+4,y-4],[x,y]],'#66512e');poly(ctx,[[x-3,y-4],[x+3,y-4],[x,y-1]],'#f5d990')
+ const a=p.x,b=p.y;
+ if(l.mounted)horse(ctx,a,b,p.face,p.moving,t);
+ person(ctx,a,b-(l.mounted?12:0),'#9d332e',p.face,p.moving&&!l.mounted,t,'sultan');
+ if(l.cargo)carriedSack(ctx,a-6*p.face,b-13);
+ const yy=b-(l.mounted?57:46);
+ poly(ctx,[[a-3,yy-3],[a+3,yy-3],[a,yy]],'#f9e8ba');
+
  }});
  if(game.motion.length){const [x,y]=game.motion.at(-1);for(let i=0;i<4;i++){let a=i*Math.PI/2;rect(c,x+Math.cos(a)*6,y+Math.sin(a)*3,2,2,'#fff0c0')}}
  for(const d of items.sort((a,b)=>a.y-b.y))d.draw(c);
  if(room.type!=='inside'){for(let i=0;i<4;i++){const x=(t*(11+i)+i*199)%860-30,y=21+i*5+Math.sin(t*.7+i)*4;rect(c,x,y,2,1,'#48594e');rect(c,x+2,y+1,2,1,'#48594e');rect(c,x+4,y,2,1,'#48594e')}}
  const hour=(s.minutes/60)%24,shade=hour<5||hour>=20?.43:hour<7?(7-hour)*.15:hour>17?(hour-17)*.14:0;
- if(shade){c.fillStyle='rgba(26,40,76,'+shade+')';c.fillRect(0,0,W,H)}
+ if(shade){c.fillStyle='rgba(26,40,76,'+shade+')';c.fillRect(this.camX,this.camY,vw,vh)}
+ if(game.pin?.room===key){
+  const {x,y}=game.pin;c.strokeStyle='#a34533';c.lineWidth=2;c.beginPath();c.moveTo(x-4,y-4);c.lineTo(x+4,y+4);c.moveTo(x+4,y-4);c.lineTo(x-4,y+4);c.stroke()
+ }
+ const near=game.nearby();
+ if(near){const y=near.y-(near.kind==='npc'||near.item.id==='horse'?47:26);
+  rect(c,near.x-4,y-5,9,9,'#574331');rect(c,near.x-3,y-4,7,7,'#e5c88a');c.fillStyle='#4a3826';c.font='bold 7px monospace';c.textAlign='center';c.fillText('E',Math.round(near.x)+.5,Math.round(y)+2)
+ }
+ c.setTransform(1,0,0,1,0,0);
  }
 }
