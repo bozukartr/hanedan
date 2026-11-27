@@ -1,17 +1,34 @@
 <!doctype html>
-<html lang="tr"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#272b20"><title>HANEDAN · İstanbul, 1520</title>
-<link rel="icon" href="data:,"><link rel="stylesheet" href="./style.css?v=4"></head>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#142722"><title>HANEDAN · İstanbul, 1520</title>
+<link rel="icon" href="data:,"><link rel="stylesheet" href="./style.css?v=5">
+</head>
 <body><main id="scene" aria-label="HANEDAN">
-<canvas id="world" aria-label="Oyun dünyası. WASD ile yürü, E ile etkileş." tabindex="0"></canvas>
+<canvas id="world" aria-label="Saray. Yürümek için zemine dokun veya yön tuşlarını kullan." tabindex="0"></canvas>
 <div class="shade"></div>
-<div class="location"><span class="crest" aria-hidden="true">☾</span><div><small>H A N E D A N</small><h1 id="area">Divan Meydanı</h1></div></div>
-<div class="ledger"><strong id="gold"></strong><span><i data-icon="sun"></i><b id="time"></b></span><small id="day"></small></div>
-<button id="mapkey" class="radar" aria-label="İstanbul haritasını aç"><span class="mapface"><canvas id="radar" width="150" height="150"></canvas></span><span class="north">K</span></button>
-<div class="vitals"><span title="Dayanıklılık" aria-label="Dayanıklılık"><b>ϟ</b><meter id="stamina" min="0" max="100"></meter></span><span title="Su" aria-label="Su"><b>◈</b><meter id="thirst" min="0" max="100"></meter></span></div>
+<header class="hud-head">
+ <div class="place"><span class="monogram" aria-hidden="true">☾</span><div><small>HANEDAN</small><h1 id="area">Divan Meydanı</h1><div class="date"><span id="day"></span><b id="time"></b></div></div></div>
+ <div class="treasury"><i data-icon="coins"></i><div><small>Hazine</small><strong id="gold"></strong></div></div>
+ <button class="iconbtn" id="menu" aria-label="Oyun menüsü" title="Oyun menüsü (Esc)"><i data-icon="pause"></i></button>
+</header>
+<div class="instruments">
+ <button id="mapkey" class="radar" aria-label="İstanbul haritasını aç"><canvas id="radar" width="150" height="150"></canvas><span class="north">K</span></button>
+ <div class="vitals"><label title="Dayanıklılık"><i data-icon="leaf"></i><meter aria-label="Dayanıklılık" id="stamina" min="0" max="100"></meter></label><label title="Su"><i data-icon="water"></i><meter aria-label="Su" id="thirst" min="0" max="100"></meter></label></div>
+</div>
+<div id="stick" aria-label="Hareket çubuğu"><span></span></div>
+<nav class="dock" aria-label="Hızlı erişim">
+ <button id="seal"><i data-icon="seal"></i><span>Hüküm</span><kbd>F</kbd><b class="count" id="count" hidden></b></button>
+ <button id="staff"><i data-icon="people"></i><span>Teşkilat</span><kbd>T</kbd></button>
+ <button id="chart"><i data-icon="map"></i><span>Harita</span><kbd>M</kbd></button>
+ <button id="journal"><i data-icon="book"></i><span>Defter</span><kbd>J</kbd></button>
+ <button id="pouch"><i data-icon="bag"></i><span>Heybe</span><kbd>I</kbd></button>
+</nav>
+<div class="context"><button id="ride" hidden>Attan in <kbd>R</kbd></button><button id="interact" hidden><i data-icon="hand"></i><span id="prompt">Etkileş</span><kbd>E</kbd></button></div>
 <div id="message" role="status"></div>
-<div class="context"><small id="equipped">HÜKÜMDAR MÜHRÜ</small><button id="interact"><span id="prompt">Etkileş</span><kbd>E</kbd></button><button id="seal">Hüküm ver <kbd>F</kbd></button><button id="wheelbtn">Hükümdar çarkı <kbd>Tab</kbd></button><button id="ride" hidden>Attan in <kbd>R</kbd></button></div>
-<button class="menu" id="menu" aria-label="Oyun menüsü" title="Oyun menüsü">☰</button>
-<dialog id="dialog"><div class="dialoghead"><small id="modalcap"></small><button id="close" aria-label="Kapat">×</button></div><h2 id="modaltitle"></h2><div id="modalbody"></div></dialog>
-</main><script type="module" src="./src/main.js?v=4"></script></body></html>
+<dialog id="dialog" aria-labelledby="modaltitle"><header class="panel-head"><div><small id="modalcap"></small><h2 id="modaltitle"></h2></div><button id="close" class="iconbtn" aria-label="Kapat">×</button></header>
+<nav id="panelnav" aria-label="Oyun bölümleri"><button data-view="orders">Hüküm</button><button data-view="census">Teşkilat</button><button data-view="map">Harita</button><button data-view="log">Defter</button><button data-view="bag">Heybe</button></nav>
+<div id="modalbody"></div></dialog>
+</main><script type="module" src="./src/main.js?v=5"></script></body></html>
