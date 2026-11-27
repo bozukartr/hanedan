@@ -1,12 +1,13 @@
-import {goods,trades,workStatus} from './work.js?v=3';
-import {districts,mandates,officers,issue,revoke,summary} from './council.js?v=3';
-import {rooms,orders,clockText,dateText,WIDTH,HEIGHT} from './data.js?v=3';
-import {Palace} from './simulation.js?v=3';
-import {Renderer} from './render.js?v=3';
-import {targets,usePlace,dismount,consume} from './life.js?v=3';
-import {districtName,outerWidth,outerHeight} from './district.js?v=3';
-import {chart} from './cartography.js?v=3';
-import {icons} from './icons.js?v=3';
+import {departments,personnel} from './roster.js?v=4';
+import {goods,trades,workStatus} from './work.js?v=4';
+import {districts,mandates,officers,eligible,issue,revoke,summary} from './council.js?v=4';
+import {rooms,orders,clockText,dateText,WIDTH,HEIGHT} from './data.js?v=4';
+import {Palace} from './simulation.js?v=4';
+import {Renderer} from './render.js?v=4';
+import {targets,usePlace,dismount,consume} from './life.js?v=4';
+import {districtName,outerWidth,outerHeight} from './district.js?v=4';
+import {chart} from './cartography.js?v=4';
+import {icons} from './icons.js?v=4';
 const $=id=>document.getElementById(id),world=$('world'),dialog=$('dialog'),body=$('modalbody');
 let storage;try{storage=window.localStorage}catch{}
 const game=Palace.load(storage),s=game.s,renderer=new Renderer(world),keys=new Set();
@@ -22,14 +23,22 @@ function close(){if(dialog.open)dialog.close();view='';world.focus({preventScrol
 dialog.addEventListener('cancel',e=>{e.preventDefault();close()});$('close').onclick=close;
 dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)close()}});
 game.register('chronicle',{event(type,text){if(type==='record'){toast(text);beep(310);refresh();save()}}});
-function census(){
- modal('census','RÛZNÂME','Mesai defteri');
- body.append(el('p','İskele ve çarşı · '+Object.entries(s.stores).map(([k,v])=>v+' '+goods[k]).join(' · ')));
- for(const n of s.npcs){
-  const d=game.note(n),w=n.work,unit=Object.entries(trades[n.id][3]).map(([k,v])=>v+' '+goods[k]).join(', ');
-  body.append(el('strong',d.name+' · '+d.role),el('p',(n.room==='court'?districtName(n.x,n.y):rooms[n.room].name)+' · '+workStatus(n,s)+' · '+w.cycles+' iş tamamlandı. Her işte '+unit+'.'));
+function census(selected='divan'){
+ modal('census','RÛZNÂME · '+s.npcs.length+' KİŞİ','Teşkilat ve mesai');
+ const picker=el('select','');picker.setAttribute('aria-label','Birim');
+ for(const [id,unit] of departments){const option=el('option',unit[1]);option.value=id;picker.append(option)}
+ picker.value=selected;picker.onchange=()=>census(picker.value);body.append(picker);
+ const unit=departments.get(selected),staff=s.npcs.filter(n=>game.note(n).unit===selected);
+ body.append(el('p',staff.length+' kişi · '+s.stores[selected+'/4']+' '+unit[4]+' hazır.'));
+ const active=(s.priority[selected]??0)>s.minutes;
+ button(active?'Öncelikli mesai yürürlükte':'Birime öncelik ver',active?'Kalan süre '+Math.ceil(s.priority[selected]-s.minutes)+' dakika':'180 akçe · Altı saat boyunca işler %50 daha hızlı ilerler.',()=>{
+  s.gold-=180;s.priority[selected]=s.minutes+360;game.log(unit[1]+' için öncelikli mesai buyuruldu.');census(selected)
+ },active||s.gold<180);
+ button('Bir saat geçir','Tüm birimlerin mesaisi sürer.',()=>{advanceClock(60);census(selected)});
+ for(const n of staff.sort((a,b)=>(game.note(b).slot??10)-(game.note(a).slot??10))){
+  const d=game.note(n),w=n.work,boss=personnel.get(d.boss);
+  body.append(el('strong',d.name+' · '+d.role),el('p',d.rank+' · Bağlı olduğu makam: '+(boss?boss.role+' '+boss.name:'Padişah')+' · '+workStatus(n,s)+' · '+w.cycles+' iş tamamlandı.'));
  }
- button('Bir saat geçir','Herkes mesaisine devam eder.',()=>{advanceClock(60);census()});
 }
 function advanceClock(minutes,stopAtReport=false){
  const end=s.minutes+minutes,count=s.office.jobs.length;
@@ -46,7 +55,9 @@ function decrees(type='provision',zone='kitchen',officer='porter',amount=1){
  }
  const action=field('Hüküm',Object.entries(mandates).map(([id,v])=>[id,v.name]),type);
  const region=field('Bölge',Object.entries(districts).map(([id,v])=>[id,v.name]),zone);
- const agent=field('Vekil',officers.map(id=>[id,game.note(s.npcs.find(n=>n.id===id)).name]),officer);
+ const available=officers.filter(id=>eligible(id,type));
+ if(!available.includes(officer))officer=available[0];
+ const agent=field('Vekil',available.map(id=>[id,personnel.get(id).role+' · '+personnel.get(id).name]),officer);
  const qty=field('Miktar',Array.from({length:8},(_,i)=>[i+1,String(i+1)]),amount);
  const a=s.office.accounts[zone],rule=mandates[type],error=summary(s,type,zone,amount,officer);
  body.append(el('p',rule.help),el('p','Bölgede '+a.grain+' çuval zahire, '+a.guards+' muhafız, '+a.levies+' vergi payı · Huzur '+a.peace+'/100 · '+a.served+' kişiye aş dağıtıldı.'));
@@ -54,7 +65,7 @@ function decrees(type='provision',zone='kitchen',officer='porter',amount=1){
  button('Mühürle · '+(rule.cost*amount)+' akçe',error||amount+' '+rule.unit,()=>{issue(game,type,zone,amount,officer);decrees(type,zone,officer,amount)},!!error);
  for(const j of s.office.jobs){
   const name=game.note(s.npcs.find(n=>n.id===j.officer)).name;
-  button('№ '+j.id+' · '+name+' · '+({pickup:'Ambara gidiyor',travel:'Yolda',work:'İcra ediliyor'}[j.phase]),districts[j.zone].name+' · '+mandates[j.type].name+' · Emri geri al',()=>{revoke(game,j.id);decrees()});
+  button('№ '+j.id+' · '+name+' · '+({pickup:'Ambara gidiyor',travel:'Yolda',work:'İcra ediliyor'}[j.phase]),(j.executor?'İcrada: '+personnel.get(j.executor).name+' · ':'')+districts[j.zone].name+' · '+mandates[j.type].name+' · Emri geri al',()=>{revoke(game,j.id);decrees()});
  }
  if(s.office.jobs.length)button('Sonraki arza kadar bekle','En çok dört oyun saati geçir.',()=>{advanceClock(240,true);decrees(type,zone,officer,amount)});
  if(s.events.length>1)body.append(el('p',s.events.at(-1).text));
@@ -107,9 +118,9 @@ function talk(n){
  const tasks={escort:'Emriniz üzere yanınızdayım, hünkârım.',meal:'İmaret sofrasını meydana kuruyorum, hünkârım.',watch:'Kapılarda devriyedeyim, hünkârım.',plant:'Gül tarhlarının bakımındayım, hünkârım.',council:'Divan için Kubbealtı’nda toplanıyoruz, hünkârım.'};
  body.append(el('p','“'+(tasks[n.duty]||d.line)+'”'));
  body.append(el('p',workStatus(n,s)+' · '+n.work.cycles+' iş tamamlandı.'));
- if(officers.includes(n.id))button('Vazife tevdi et','Bu görevliye hüküm yaz.',()=>decrees('provision','kitchen',n.id));
+ if(officers.includes(n.id))button('Vazife tevdi et','Bu görevliye hüküm yaz.',()=>decrees(Object.keys(mandates).find(type=>eligible(n.id,type)),'kitchen',n.id));
  button('Ahvali sor','Sarayın bugünkü durumunu öğren.',()=>{body.querySelector('p').textContent='“'+(s.peace>=85?'Saray halkının gönlü ferah.':'Meydan sakin, hünkârım.')+' Hazinede '+s.gold.toLocaleString('tr-TR')+' akçe var. '+(game.active('meal')?'İmaret sofrası meydana kuruldu.':'Yeni arzlarınızı bekleriz.')+'”'});
- button(n.duty==='escort'?'Görevine gönder':'Maiyete al',n.duty==='escort'?'Günlük işine döner.':'Sarayda sana refakat eder.',()=>{game.escort(n);close()},n.duty==='mandate');
+ button(n.duty==='escort'?'Görevine gönder':'Maiyete al',n.duty==='escort'?'Günlük işine döner.':'Sarayda sana refakat eder.',()=>{game.escort(n);close()},['mandate','supervise'].includes(n.duty));
  button('İhsanda bulun','40 akçe · İtibar +1 · Günde bir kez',()=>{s.gold-=40;s.esteem=Math.min(100,s.esteem+1);s.lastGrant=Math.floor(s.minutes/1440);game.log(d.name+' için 40 akçe ihsan buyuruldu.');close()},s.gold<40||s.lastGrant===Math.floor(s.minutes/1440))
 }
 function perform(obj){if(obj?.kind==='npc')talk(obj.item);else if(obj?.kind==='exit')game.enter(obj.item);else if(obj?.kind==='place'){if(['sack','oven'].includes(obj.item.id)){decrees(obj.item.id==='sack'?'provision':'relief','kitchen',obj.item.id==='sack'?'porter':'cook');return}const result=usePlace(game,obj.item.id);if(result)toast(result)}

@@ -1,7 +1,7 @@
-import {rooms,WIDTH as W,HEIGHT as H} from './data.js?v=3';
-import {seed,rect,poly,oval,star,arch,stone,palace,bed,tree,fountain,person} from './art.js?v=3';
-import {outerWidth,outerHeight} from './district.js?v=3';
-import {landscape,streetObjects,horse,carriedSack} from './istanbul-art.js?v=3';
+import {rooms,WIDTH as W,HEIGHT as H} from './data.js?v=4';
+import {seed,rect,poly,oval,star,arch,stone,palace,bed,tree,fountain,person} from './art.js?v=4';
+import {outerWidth,outerHeight} from './district.js?v=4';
+import {landscape,streetObjects,horse,carriedSack} from './istanbul-art.js?v=4';
 function layer(w=W,h=H){const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;return canvas.getContext('2d')}
 function floor(c,r){
  rect(c,0,0,W,H,'#c8b996');
@@ -80,7 +80,7 @@ export class Renderer{
  if(!l.mounted&&steed.room===key)items.push({y:steed.y,draw:ctx=>horse(ctx,steed.x,steed.y,steed.face,false,t)});
  
  if(room.fountain)items.push({y:room.fountain[1]+8,draw:ctx=>fountain(ctx,room.fountain,t)});
- for(const n of s.npcs.filter(n=>n.room===key))items.push({y:n.y,draw:ctx=>{person(ctx,n.x,n.y,game.note(n).color,n.face,n.moving,t+n.id.length,n.id);if(s.office.jobs.some(j=>j.officer===n.id&&j.type==='provision'&&j.phase!=='pickup'))carriedSack(ctx,n.x-6*n.face,n.y-13)}});
+ for(const n of s.npcs.filter(n=>n.room===key&&n.x>this.camX-12&&n.x<this.camX+vw+12&&n.y>this.camY-8&&n.y<this.camY+vh+48))items.push({y:n.y,draw:ctx=>{person(ctx,n.x,n.y,game.note(n).color,n.face,n.moving,t+n.id.length,n.id);if(s.office.jobs.some(j=>(j.executor??j.officer)===n.id&&j.type==='provision'&&j.phase!=='pickup'))carriedSack(ctx,n.x-6*n.face,n.y-13)}});
  items.push({y:p.y,draw:ctx=>{
  const a=p.x,b=p.y;
  if(l.mounted)horse(ctx,a,b,p.face,p.moving,t);
