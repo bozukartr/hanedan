@@ -1,4 +1,4 @@
-import {places} from './district.js?v=2';
+import {places} from './district.js?v=3';
 
 export function initialLife(){
  return {stamina:90,thirst:75,bread:1,water:1,cargo:false,deliveries:0,
@@ -27,14 +27,9 @@ export function usePlace(game,id){
  case 'bread':
   if(s.gold<4)return 'Ekmek için 4 akçe gerekiyor.';
   if(l.bread>=8)return 'Heybende sekiz ekmek var.';
-  s.gold-=4;l.bread++;break;
- case 'sack':
-  if(l.mounted)return 'Çuvalı almak için attan in.';
-  if(l.cargo)return 'Zaten bir un çuvalı taşıyorsun.';
-  l.cargo=true;break;
- case 'oven':
-  if(!l.cargo)return 'Sarayburnu İskelesi’ndeki ambardan bir çuval un getirebilirsin.';
-  l.cargo=false;l.deliveries++;l.bread=Math.min(8,l.bread+2);s.peace=Math.min(100,s.peace+1);break;
+  if(!s.stores.bread)return 'Fırında ekmek kalmadı. Yeni parti pişiriliyor.';
+  s.stores.bread--;s.gold-=4;l.bread++;break;
+ case 'sack':case 'oven':return 'Zahire sevki için bir vekil görevlendirin.';
  default:l.water=3;l.thirst=100;
  }
  const messages={horse:'Kırat’a bindin.',bread:'Heybene bir ekmek koydun.',sack:'Un çuvalını omuzladın. Matbah-ı Âmire’ye götürebilirsin.',oven:'Un kilerde. Aşçı heybene iki ekmek koydu.'};

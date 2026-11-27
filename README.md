@@ -48,4 +48,12 @@ Node.js 20 veya yenisiyle proje kökünde `npm test` çalıştır. Testler geçi
 
 ## İstanbul ve oyun içi HUD
 
-Kamera oyuncuyu izler. Aynı dış haritada saraydan doğuya yürüyerek ahırlara ve çarşıya, güneydoğuya yürüyerek iskeleye ulaşılır. Sol alttaki radara dokunarak haritayı açabilir ve işaret koyabilirsin. Tab hükümdar çarkını, I heybeyi, Esc oyun menüsünü açar. Kırat’ın yanında E ile bin, R ile in. E ile çeşmede matara doldurabilir, çarşıda ekmek alabilir veya iskele ambarından mutfağa un taşıyabilirsin.
+Kamera oyuncuyu izler. Aynı dış haritada saraydan doğuya yürüyerek ahırlara ve çarşıya, güneydoğuya yürüyerek iskeleye ulaşılır. Sol alttaki radara dokunarak haritayı açabilir ve işaret koyabilirsin. Tab hükümdar çarkını, I heybeyi, Esc oyun menüsünü açar. Kırat’ın yanında E ile bin, R ile in. E ile çeşmede matara doldurabilir, çarşıda ekmek alabilir veya iskele ambarında bir vekile sevk emri verebilirsin.
+
+## Mesai ve hükümler
+
+F ile hüküm defterinde bölge, miktar ve vekil seçilir. Zahire sevki iskele stokundan ayrılır. Hamal başka vazifedeyken iskeleye yeni mal girmez. Bölgeye ulaşan zahireyle aş dağıttırılabilir. Muhafız konuşlandırmak tahsilatın huzura maliyetini düşürür. Aynı anda birden çok vekile ayrı emirler verilebilir.
+
+Mesai defteri 11 kişinin yaptığı işi, tamamlanan işleri ve ortak stokları gösterir. Mesai, öğle molası ve istirahat oyun saatine bağlıdır. Her NPC kendi iş noktasına yürür. Gerekli malzeme eksikse bekler. Oyuncu başka bölgedeyken veya defterden zaman geçirirken aynı simülasyon çalışır. Tarayıcı kapalıyken oyun saati durur.
+
+Meslek girdileri ve çıktıları `dist/src/work.js`, bölge hesapları ve emirlerin icrası `dist/src/council.js` içinde tanımlıdır.

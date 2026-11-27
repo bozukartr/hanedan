@@ -25,8 +25,8 @@ export const stalls = [
 export const places = [
   {id:'fountain',room:'court',x:400,y:310,label:'Matara doldur',name:'Meydan çeşmesi'},
   {id:'bread',room:'court',x:973,y:395,label:'Ekmek al · 4 akçe',name:'Fırın tezgâhı'},
-  {id:'sack',room:'court',x:1430,y:750,label:'Un çuvalını yüklen',name:'İskele ambarı'},
-  {id:'oven',room:'kitchen',x:305,y:247,label:'Çuvalı mutfağa teslim et',name:'Saray fırını'},
+  {id:'sack',room:'court',x:1430,y:750,label:'Zahire sevk emri ver',name:'İskele ambarı'},
+  {id:'oven',room:'kitchen',x:305,y:247,label:'Mutfak için hüküm ver',name:'Saray fırını'},
   {id:'gardenWater',room:'garden',x:401,y:319,label:'Matara doldur',name:'Hasbahçe çeşmesi'}
 ];
 
