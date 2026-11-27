@@ -1,3 +1,4 @@
+import {movementStick} from './touch.js?v=5';
 import {departments,personnel} from './roster.js?v=4';
 import {goods,trades,workStatus} from './work.js?v=4';
 import {districts,mandates,officers,eligible,issue,revoke,summary} from './council.js?v=4';
@@ -7,18 +8,27 @@ import {Renderer} from './render.js?v=4';
 import {targets,usePlace,dismount,consume} from './life.js?v=4';
 import {districtName,outerWidth,outerHeight} from './district.js?v=4';
 import {chart} from './cartography.js?v=4';
-import {icons} from './icons.js?v=4';
+import {icons} from './icons.js?v=5';
 const $=id=>document.getElementById(id),world=$('world'),dialog=$('dialog'),body=$('modalbody');
 let storage;try{storage=window.localStorage}catch{}
 const game=Palace.load(storage),s=game.s,renderer=new Renderer(world),keys=new Set();
+const stick=movementStick($('stick'));
 let view='',t=0,last=performance.now(),uiTime=0,saveTime=0,msgUntil=0,storageOK=true,soundContext;
 const el=(tag,txt)=>{const a=document.createElement(tag);a.textContent=txt;return a};
 function save(){try{game.save(storage);storageOK=true}catch{storageOK=false}}
 function toast(text){$('message').textContent=text;$('message').style.display='block';msgUntil=performance.now()+3600}
 function beep(hz=370){if(!s.sound)return;try{soundContext??=new AudioContext();soundContext.resume().catch(()=>{});let o=soundContext.createOscillator(),g=soundContext.createGain();o.type='sine';o.frequency.value=hz;g.gain.setValueAtTime(.045,soundContext.currentTime);g.gain.exponentialRampToValueAtTime(.001,soundContext.currentTime+.14);o.connect(g).connect(soundContext.destination);o.start();o.stop(soundContext.currentTime+.15)}catch{}}
 function toggleSound(){s.sound=!s.sound;beep();save();menu()}
-function button(title,detail,action,disabled=false){const b=el('button','');b.append(el('strong',title));if(detail)b.append(el('small',detail));b.disabled=disabled;b.onclick=()=>{beep();action()};body.append(b)}
-function modal(id,cap,title){keys.clear();view=id;$('modalcap').textContent=cap;$('modaltitle').textContent=title;body.replaceChildren();if(!dialog.open)dialog.showModal();dialog.classList.toggle('wheel',id==='wheel');$('close').focus()}
+function button(title,detail,action,disabled=false){const b=el('button','');b.append(el('strong',title));if(detail)b.append(el('small',detail));b.disabled=disabled;b.onclick=()=>{beep();action()};body.append(b);return b}
+function modal(id,cap,title){
+ const switching=!dialog.open||view!==id;
+ keys.clear();stick.reset();view=id;$('modalcap').textContent=cap;$('modaltitle').textContent=title;
+ body.replaceChildren();if(!dialog.open)dialog.showModal();
+ for(const tab of $('panelnav').children){
+  if(tab.dataset.view===id)tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current');
+ }
+ if(switching){body.scrollTop=0;$('close').focus({preventScroll:true})}
+}
 function close(){if(dialog.open)dialog.close();view='';world.focus({preventScroll:true})}
 dialog.addEventListener('cancel',e=>{e.preventDefault();close()});$('close').onclick=close;
 dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)close()}});
@@ -35,10 +45,21 @@ function census(selected='divan'){
   s.gold-=180;s.priority[selected]=s.minutes+360;game.log(unit[1]+' için öncelikli mesai buyuruldu.');census(selected)
  },active||s.gold<180);
  button('Bir saat geçir','Tüm birimlerin mesaisi sürer.',()=>{advanceClock(60);census(selected)});
- for(const n of staff.sort((a,b)=>(game.note(b).slot??10)-(game.note(a).slot??10))){
-  const d=game.note(n),w=n.work,boss=personnel.get(d.boss);
-  body.append(el('strong',d.name+' · '+d.role),el('p',d.rank+' · Bağlı olduğu makam: '+(boss?boss.role+' '+boss.name:'Padişah')+' · '+workStatus(n,s)+' · '+w.cycles+' iş tamamlandı.'));
+ const search=el('input','');search.type='search';search.placeholder='281 kişi içinde ad veya görev ara';search.setAttribute('aria-label','Tüm teşkilatta ara');search.className='directory-search';body.append(search);
+ const list=el('div','');body.append(list);
+ function showPeople(){
+  const q=search.value.trim().toLocaleLowerCase('tr');list.replaceChildren();
+  const matches=q?s.npcs.filter(n=>{const d=game.note(n);return [d.name,d.role,departments.get(d.unit)[1]].some(v=>v.toLocaleLowerCase('tr').includes(q))}):staff;
+  if(!matches.length){list.append(el('p','Eşleşen kişi bulunamadı.'));return}
+  for(const n of matches.slice().sort((a,b)=>(game.note(b).slot??10)-(game.note(a).slot??10))){
+   const d=game.note(n),boss=personnel.get(d.boss),row=el('article','');row.className='person-row';
+   row.append(el('strong',d.name+' · '+d.role),el('span',departments.get(d.unit)[1]+' · '+d.rank),
+    el('span','Amiri: '+(boss?boss.name+' ('+boss.role+')':'Padişah')),
+    el('span',workStatus(n,s)+' · '+n.work.cycles+' iş tamamlandı'));list.append(row);
+  }
  }
+ search.oninput=showPeople;showPeople();
+
 }
 function advanceClock(minutes,stopAtReport=false){
  const end=s.minutes+minutes,count=s.office.jobs.length;
@@ -48,10 +69,11 @@ function advanceClock(minutes,stopAtReport=false){
 }
 function decrees(type='provision',zone='kitchen',officer='porter',amount=1){
  modal('orders','DİVAN-I HÜMAYUN','Hüküm ver');
+ const fields=el('div','');fields.className='fields';body.append(fields);
  function field(label,options,value){
   const wrap=el('label',label),select=el('select','');
   for(const [id,name] of options){const opt=el('option',name);opt.value=id;select.append(opt)}
-  select.value=value;wrap.append(select);body.append(wrap);return select;
+  select.setAttribute('aria-label',label);select.value=value;wrap.append(select);fields.append(wrap);return select;
  }
  const action=field('Hüküm',Object.entries(mandates).map(([id,v])=>[id,v.name]),type);
  const region=field('Bölge',Object.entries(districts).map(([id,v])=>[id,v.name]),zone);
@@ -61,11 +83,19 @@ function decrees(type='provision',zone='kitchen',officer='porter',amount=1){
  const qty=field('Miktar',Array.from({length:8},(_,i)=>[i+1,String(i+1)]),amount);
  const a=s.office.accounts[zone],rule=mandates[type],error=summary(s,type,zone,amount,officer);
  body.append(el('p',rule.help),el('p','Bölgede '+a.grain+' çuval zahire, '+a.guards+' muhafız, '+a.levies+' vergi payı · Huzur '+a.peace+'/100 · '+a.served+' kişiye aş dağıtıldı.'));
- for(const sel of [action,region,agent,qty])sel.onchange=()=>decrees(action.value,region.value,agent.value,Number(qty.value));
- button('Mühürle · '+(rule.cost*amount)+' akçe',error||amount+' '+rule.unit,()=>{issue(game,type,zone,amount,officer);decrees(type,zone,officer,amount)},!!error);
+ for(const [index,sel] of [action,region,agent,qty].entries())sel.onchange=()=>{
+  decrees(action.value,region.value,agent.value,Number(qty.value));
+  body.querySelectorAll('.fields select')[index].focus({preventScroll:true});
+ };
+ button('Mühürle · '+(rule.cost*amount)+' akçe',error||amount+' '+rule.unit,()=>{issue(game,type,zone,amount,officer);decrees(type,zone,officer,amount)},!!error).classList.add('primary');
  for(const j of s.office.jobs){
   const name=game.note(s.npcs.find(n=>n.id===j.officer)).name;
-  button('№ '+j.id+' · '+name+' · '+({pickup:'Ambara gidiyor',travel:'Yolda',work:'İcra ediliyor'}[j.phase]),(j.executor?'İcrada: '+personnel.get(j.executor).name+' · ':'')+districts[j.zone].name+' · '+mandates[j.type].name+' · Emri geri al',()=>{revoke(game,j.id);decrees()});
+  const row=el('article','');row.className='entry';
+  row.append(el('strong',mandates[j.type].name+' · '+districts[j.zone].name),
+   el('span',name+' · '+({pickup:'Ambara gidiyor',travel:'Yolda',work:'İcra ediliyor'}[j.phase])+(j.executor?' · '+personnel.get(j.executor).name:'')));
+  body.append(row);
+  row.append(button('Hükmü geri al','№ '+j.id,()=>{revoke(game,j.id);decrees()}));
+
  }
  if(s.office.jobs.length)button('Sonraki arza kadar bekle','En çok dört oyun saati geçir.',()=>{advanceClock(240,true);decrees(type,zone,officer,amount)});
  if(s.events.length>1)body.append(el('p',s.events.at(-1).text));
@@ -98,7 +128,7 @@ function bag(){
 
 }
 function wheel(){
- modal('wheel','HÜKÜMDAR','Hükümdar çarkı');
+ modal('wheel','HÜKÜMDAR','Hızlı menü');
  button('Ferman','F',decrees);button('Harita','M',atlas);button('Heybe','I',bag);button('Vekayinâme','J',codex);
 }
 function menu(){
@@ -112,7 +142,7 @@ function menu(){
  button('Ses · '+(s.sound?'Açık':'Kapalı'),'',toggleSound);button('Kontroller','',help)
 }
 function help(){modal('help','OYUN KONTROLLERİ','Sarayda dolaş');
- for(const a of ['WASD veya yön tuşlarıyla yürü. Shift ile koş. Zemine dokunarak da yürüyebilirsin.','E ile yakındaki kişi, at, geçit veya tezgâhla etkileş. R ile attan in.','Tab hükümdar çarkını açar. F ferman, I heybe, M harita, J vekayinâme.','Doğuda çarşı, güneydoğuda iskele var. Haritada bu yerleri işaretleyebilirsin.','Boşluk veya Esc oyunu duraklatır.'])body.append(el('p',a))}
+ for(const a of ['WASD veya yön tuşlarıyla yürü. Shift ile koş. Dokunmatik ekranda çubuğu sürükleyerek yürü, kenarına çekerek koş. Zemine dokunarak da yürüyebilirsin.','E ile yakındaki kişi, at, geçit veya tezgâhla etkileş. R ile attan in.','F hüküm, T teşkilat, I heybe, M harita, J vekayinâme. Oyun alanında Tab hızlı menüyü açar.','Doğuda çarşı, güneydoğuda iskele var. Haritada bu yerleri işaretleyebilirsin.','Boşluk veya Esc oyunu duraklatır.'])body.append(el('p',a))}
 function talk(n){
  const d=game.note(n);modal('talk',d.role.toLocaleUpperCase('tr'),d.name);
  const tasks={escort:'Emriniz üzere yanınızdayım, hünkârım.',meal:'İmaret sofrasını meydana kuruyorum, hünkârım.',watch:'Kapılarda devriyedeyim, hünkârım.',plant:'Gül tarhlarının bakımındayım, hünkârım.',council:'Divan için Kubbealtı’nda toplanıyoruz, hünkârım.'};
@@ -137,12 +167,14 @@ function refresh(){
  $('day').textContent=dateText(s.minutes);$('time').textContent=clockText(s.minutes);
  $('gold').textContent=s.gold.toLocaleString('tr-TR')+' akçe';
  $('stamina').value=l.stamina;$('thirst').value=l.thirst;$('ride').hidden=!l.mounted;
- $('equipped').textContent=l.mounted?'KIRAT':l.cargo?'UN ÇUVALI':'HÜKÜMDAR MÜHRÜ';
+ $('count').hidden=!s.office.jobs.length;$('count').textContent=s.office.jobs.length;
  const a=game.nearby();$('prompt').textContent=a?(a.kind==='npc'?'Konuş · '+game.note(a.item).name:a.item.label):'Etkileş';
  $('interact').hidden=!a;
  chart($('radar').getContext('2d'),game,p.x,p.y,.28)
 }
-$('seal').onclick=()=>decrees();$('menu').onclick=menu;$('interact').onclick=act;$('mapkey').onclick=atlas;$('wheelbtn').onclick=wheel;$('ride').onclick=()=>dismount(game);
+$('seal').onclick=()=>decrees();$('menu').onclick=menu;$('interact').onclick=act;$('mapkey').onclick=atlas;$('staff').onclick=()=>census();$('chart').onclick=atlas;$('journal').onclick=codex;$('pouch').onclick=bag;$('ride').onclick=()=>dismount(game);
+const pages={orders:decrees,census,map:atlas,log:codex,bag};
+for(const tab of $('panelnav').children)tab.onclick=()=>pages[tab.dataset.view]();
 world.addEventListener('pointerdown',e=>{world.focus({preventScroll:true});
  const [x,y]=renderer.project(e.clientX,e.clientY);
  const obj=targets(s).find(a=>Math.abs(a.x-x)<14&&y>=a.y-(a.id==='horse'?38:13)&&y<a.y+8);
@@ -154,12 +186,14 @@ world.addEventListener('pointerdown',e=>{world.focus({preventScroll:true});
 });
 window.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase();
  if(dialog.open){if(view==='wheel'){const fn={m:atlas,f:decrees,i:bag,j:codex,tab:close}[k];if(fn){e.preventDefault();fn()}}return}
+ if(k==='tab'&&document.activeElement!==world)return;
+ if((k===' '||k==='enter')&&e.target.closest?.('button'))return;
  if(k==='tab')e.preventDefault();if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();
- keys.add(k);if(e.repeat)return;const fn={e:act,f:decrees,m:atlas,j:codex,'?':help,' ':menu,escape:menu,tab:wheel,i:bag,r:()=>dismount(game)}[k];if(fn)fn()});
-window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{keys.clear();last=performance.now();if(document.hidden)save()});
+ keys.add(k);if(e.repeat)return;const fn={e:act,f:decrees,t:census,m:atlas,j:codex,'?':help,' ':menu,escape:menu,tab:wheel,i:bag,r:()=>dismount(game)}[k];if(fn)fn()});
+window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>{keys.clear();stick.reset()});window.addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{keys.clear();stick.reset();last=performance.now();if(document.hidden)save()});
 function frame(now){
  const dt=Math.min(.25,Math.max(0,(now-last)/1000));last=now;
- if(!dialog.open&&!document.hidden){t+=dt;const on=(...input)=>input.some(k=>keys.has(k))?1:0;for(let remaining=dt;remaining>0;remaining-=.04)game.tick(Math.min(.04,remaining),on('d','arrowright')-on('a','arrowleft'),on('s','arrowdown')-on('w','arrowup'),keys.has('shift'));
+ if(!dialog.open&&!document.hidden){t+=dt;const on=(...input)=>input.some(k=>keys.has(k))?1:0;for(let remaining=dt;remaining>0;remaining-=.04)game.tick(Math.min(.04,remaining),on('d','arrowright')-on('a','arrowleft')+stick.x,on('s','arrowdown')-on('w','arrowup')+stick.y,keys.has('shift')||stick.run);
  if(game.target&&!game.motion.length){const target=game.target;game.target=null;
  if(target.kind==='npc'&&target.item.room===s.player.room){if(Math.hypot(target.item.x-s.player.x,target.item.y-s.player.y)<=34)talk(target.item);else walkToNPC(target.item)}
  else if(target.kind==='exit'||target.kind==='place')perform(target)}

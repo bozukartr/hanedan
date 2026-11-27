@@ -48,7 +48,7 @@ Node.js 20 veya yenisiyle proje kökünde `npm test` çalıştır. Testler geçi
 
 ## İstanbul ve oyun içi HUD
 
-Kamera oyuncuyu izler. Aynı dış haritada saraydan doğuya yürüyerek ahırlara ve çarşıya, güneydoğuya yürüyerek iskeleye ulaşılır. Sol alttaki radara dokunarak haritayı açabilir ve işaret koyabilirsin. Tab hükümdar çarkını, I heybeyi, Esc oyun menüsünü açar. Kırat’ın yanında E ile bin, R ile in. E ile çeşmede matara doldurabilir, çarşıda ekmek alabilir veya iskele ambarında bir vekile sevk emri verebilirsin.
+Kamera oyuncuyu izler. Aynı dış haritada saraydan doğuya yürüyerek ahırlara ve çarşıya, güneydoğuya yürüyerek iskeleye ulaşılır. Radara dokunarak haritayı açabilir ve işaret koyabilirsin. Alt çubuktan Hüküm (F), Teşkilat (T), Harita (M), Defter (J) ve Heybe (I) açılır. Esc açık paneli kapatır veya oyun menüsünü açar. Dokunmatik ekranda sol çubuğu sürükleyerek yürür, kenarına çekerek koşarsın. Teşkilat araması tüm kadroda isim, görev ve birim bulur. Kırat’ın yanında E ile bin, R ile in. E ile çeşmede matara doldurabilir, çarşıda ekmek alabilir veya iskele ambarında bir vekile sevk emri verebilirsin.
 
 ## Mesai ve hükümler
 
