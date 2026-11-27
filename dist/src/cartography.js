@@ -1,6 +1,6 @@
-import {houses,stalls} from './district.js?v=4';
-import {rooms} from './data.js?v=4';
-import {targets} from './life.js?v=4';
+import {houses,stalls} from './district.js?v=6';
+import {rooms} from './data.js?v=6';
+import {targets} from './life.js?v=6';
 
 export function chart(c,game,cx,cy,scale){
  const w=c.canvas.width,h=c.canvas.height,p=game.s.player,r=rooms[p.room];
@@ -16,7 +16,11 @@ export function chart(c,game,cx,cy,scale){
   box(0,62,800,96,'#9c8765');
   for(const h of houses)box(h.x,h.y-55,h.w,55,'#997e61');
   for(const s of stalls)box(s.x,s.y-16,s.w,16,'#a38461');
- }else box(...[0,0,800,480],'#ccbc97');
+ }else if(r.type==='city'){
+  box(0,0,r.width,r.height,p.room==='strait'?'#679a98':'#a9aa81');
+  if(p.room==='strait'){box(0,0,150,r.height,'#a6ab82');box(1340,0,160,r.height,'#a6ab82')}
+  else if(p.room!=='enderun')box(0,640,r.width,r.height-640,'#679a98');
+ }else box(0,0,800,480,'#ccbc97');
  for(const b of r.beds)box(...b,'#8c9369');
  if(r.fountain){const [x,y,a,b]=r.fountain;c.fillStyle='#77a5a0';c.beginPath();c.ellipse(x,y,a,b,0,0,Math.PI*2);c.fill()}
  const dot=(x,y,size,color)=>{c.fillStyle=color;c.beginPath();c.arc(x,y,size/scale,0,Math.PI*2);c.fill()};

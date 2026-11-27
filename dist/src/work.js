@@ -1,4 +1,4 @@
-import {institutions} from './institutions.js?v=4';
+import {institutions} from './institutions.js?v=6';
 // Each shift lists its inputs, outputs and duration in game minutes.
 export const trades = {
  porter: ['Gemiden zahire boşaltıyor', 15, {}, {grain:3}],
@@ -43,10 +43,11 @@ export function shift(n,minutes){
  return '';
 }
 export function workStatus(n,s){
+ if(n.duty==='construction')return n.room===n.goalRoom&&!n.moving?'Şantiyede çalışıyor':'Şantiyeye gidiyor';
  if(n.duty==='supervise')return 'Verilen hükmün icrasını yönetiyor';
  if(n.duty==='mandate')return 'Padişahın hükmünü yürütüyor';
  if(n.duty!=='routine')return 'Saray hizmetinde';
- return shift(n,s.minutes)||n.work.status;
+ return n.work.period?n.work.status:shift(n,s.minutes)||n.work.status;
 }
 export function occupation(n,d,s,dt){
  const spec=trades[n.id],w=n.work,station=d.routes[w.cycles%d.routes.length];
@@ -59,4 +60,22 @@ export function occupation(n,d,s,dt){
  for(const [k,v] of Object.entries(spec[2]))s.stores[k]-=v;
  for(const [k,v] of Object.entries(spec[3]))s.stores[k]+=v;
  w.cycles++;w.progress=0;w.last=s.minutes;
+}
+
+export function workshop(n,d,s,dt){
+ const w=n.work,spec=trades[n.id];
+ if(!w.leg||w.leg==='source'){
+  if(Object.entries(spec[2]).some(([k,count])=>s.stores[k]<count)){
+   w.status='Malzeme bekliyor';n.wait=1.4;return
+  }
+  for(const [k,count] of Object.entries(spec[2]))s.stores[k]-=count;
+  w.leg='bench';w.status='Teslim aldı';n.wait=.45;return
+ }
+ if(w.leg==='bench'){
+  w.status=spec[0];w.progress+=dt*1.3*(s.priority[d.unit]>s.minutes?1.5:1);
+  if(w.progress>=spec[1]){w.leg='receiver';w.progress=0}
+  return;
+ }
+ for(const [k,count] of Object.entries(spec[3]))s.stores[k]+=count;
+ w.last=s.minutes;w.cycles++;w.leg='source';w.status='Teslim etti';n.wait=.8;
 }

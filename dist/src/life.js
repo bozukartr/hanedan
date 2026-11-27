@@ -1,4 +1,5 @@
-import {places} from './district.js?v=4';
+import {citySpots} from './city.js?v=6';
+import {places} from './district.js?v=6';
 
 export function initialLife(){
  return {stamina:90,thirst:75,bread:1,water:1,cargo:false,deliveries:0,
@@ -6,7 +7,7 @@ export function initialLife(){
 }
 export function targets(state){
  const horse=state.life.horse;
- const points=places.filter(point=>point.room===state.player.room);
+ const points=[...places.filter(point=>point.room===state.player.room),...citySpots(state)];
  if(!state.life.mounted && state.player.room===horse.room)
   points.push({id:'horse',label:'Ata bin',name:'Kırat',x:horse.x,y:horse.y,room:horse.room});
  return points;

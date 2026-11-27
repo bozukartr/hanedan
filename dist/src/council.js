@@ -1,4 +1,4 @@
-import {people,personnel} from './roster.js?v=4';
+import {people,personnel} from './roster.js?v=6';
 // District accounts and officers persist independently of the sultan's location.
 export const districts = {
   palace: {name:'Divan Meydanı', room:'court', x:500, y:350},

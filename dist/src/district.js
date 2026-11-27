@@ -30,10 +30,15 @@ export const places = [
   {id:'gardenWater',room:'garden',x:401,y:319,label:'Matara doldur',name:'Hasbahçe çeşmesi'}
 ];
 
-export const districtName=(x,y)=> y>705?'Sarayburnu İskelesi':x>=1000?'Esnaf Çarşısı':x>=807?'Has Ahırlar':y>485?'Saray Yolu':'Divan Meydanı';
+export const districtName=(x,y)=> y>705?'Sarayburnu İskelesi':x>=1000?'Esnaf Çarşısı':x>=807?'Has Ahırlar':y>465&&x>294&&x<500?'Alay Meydanı':y>485?'Saray Yolu':'Divan Meydanı';
 
 export function terrainBlocked(x,y){
+ if(inPalaceWall(x,y))return true;
  if(y>=818 && !(x>=1360&&x<=1450&&y<896))return true;
  return houses.some(h=>x>h.x-2&&x<h.x+h.w+2&&y>h.y-27&&y<h.y+3) ||
  stalls.some(s=>x>s.x&&x<s.x+s.w&&y>s.y-13&&y<s.y+3);
 }
+
+// Two walled thresholds on the palace approach leave the central gates open.
+export const palaceWalls=[[18,458,312,6],[470,458,295,6],[18,696,312,7],[470,696,295,7],[797,165,6,290],[219,554,82,21]];
+export const inPalaceWall=(x,y)=>palaceWalls.some(([a,b,w,h])=>x>a&&y>b&&x<a+w&&y<b+h);

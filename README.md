@@ -63,3 +63,13 @@ Meslek girdileri ve çıktıları `dist/src/work.js`, bölge hesapları ve emirl
 Mevcut on bir karaktere otuz birimde dokuzar kadro eklenir. Sicil kimlikleri sabittir. Eski kayıtlardaki ilerleme korunur. İsimler, görev dağılımı ve yetki basamakları oynanış için kurgulanmıştır.
 
 Birim amirine uzmanlığına uygun bir hüküm verildiğinde müsait astlarından biri işi sahada yürütür. Her ikisi de sonuç alınana veya hüküm geri çekilene kadar meşguldür. F menüsündeki mesai defterinde birimin işlerine altı saat öncelik verilebilir. Atölyelerde kabul, işleme, denetim, onay ve teslim aşamaları ayrı stok tutar. Deri saraçlara, koşum ahıra, dokuma terzilere gider. Birimler, makamlar ve iş tarifleri `institutions.js`, siciller ve bağlılıklar `roster.js` içindedir.
+
+## İstanbul, mesai ve izin
+
+Harita → İstanbul haritası ile semt seçildiğinde oyuncu kapıları ve iskeleleri izler. Bir yön tuşu veya dokunmatik çubuk yolculuğu keser. Üsküdar ile Rumeli kıyısı arasında kayıkla Boğaz üzerinde serbestçe dolaşılır. Saray yaklaşımında Alay Meydanı ve Bâbüsselâm, Divan Meydanı’nın batısında Kubbealtı ve doğusunda mutfaklar yer alır. Bâbüssaâde iç avluya, Arz Odası’na ve Hasbahçe yoluna açılır. Semt mesafeleri, bina içleri ve parseller oynanış ölçeğinde yorumlanmıştır.
+
+Atölye görevlileri girdileri alır, tezgâha taşır, işler ve teslim noktasına yürür. Ürün teslimde kayda geçer. Haftalık izin sırası, akşam gezisi, yemek ve gece nöbeti kişiye göre değişir. Galata meyhanesi ile han 1520’de açıktır. Tahtakale’de şerbet tezgâhı başlangıçta kullanılabilir. Kahvehane oyun takviminde 1554’te açılır.
+
+Harita → Emlak ve imar ile ev veya mevcut yalı satın alınır. İki ayrı arsa cami ve yalı yapımına ayrılmıştır. Kalfayla usta sahaya geldikten sonra 120 oyun dakikası çalışır. Tamamlanan yapının içi ziyaret edilebilir.
+
+Yerleşim ve dönem için [Milli Saraylar](https://www.millisaraylar.gov.tr/Lokasyon/2/Topkapi-Sarayi) ve [TDV İslâm Ansiklopedisi](https://islamansiklopedisi.org.tr/kahvehane) esas alındı.
