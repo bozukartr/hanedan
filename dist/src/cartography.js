@@ -1,32 +1,38 @@
-import {houses,stalls} from './district.js?v=6';
-import {rooms} from './data.js?v=6';
-import {targets} from './life.js?v=6';
-
-export function chart(c,game,cx,cy,scale){
- const w=c.canvas.width,h=c.canvas.height,p=game.s.player,r=rooms[p.room];
- c.setTransform(1,0,0,1,0,0);c.fillStyle='#b9aa78';c.fillRect(0,0,w,h);
- c.translate(w/2,h/2);c.scale(scale,scale);c.translate(-cx,-cy);
- const box=(x,y,w,h,color)=>{c.fillStyle=color;c.fillRect(x,y,w,h)};
- if(p.room==='court'){
-  box(0,0,1600,818,'#9fa078');box(0,818,1600,102,'#7d9d9b');box(0,145,800,335,'#d1c199');
-  c.strokeStyle='#ddcda4';c.lineWidth=46;
-  for(const route of [[[450,348],[980,310],[1450,340]],[[395,355],[426,665],[574,748],[1460,748]],[[975,308],[970,560],[1048,747]],[[1370,330],[1429,749]]]){
-   c.beginPath();route.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.stroke()
-  }
-  box(0,62,800,96,'#9c8765');
-  for(const h of houses)box(h.x,h.y-55,h.w,55,'#997e61');
-  for(const s of stalls)box(s.x,s.y-16,s.w,16,'#a38461');
- }else if(r.type==='city'){
-  box(0,0,r.width,r.height,p.room==='strait'?'#679a98':'#a9aa81');
-  if(p.room==='strait'){box(0,0,150,r.height,'#a6ab82');box(1340,0,160,r.height,'#a6ab82')}
-  else if(p.room!=='enderun')box(0,640,r.width,r.height-640,'#679a98');
- }else box(0,0,800,480,'#ccbc97');
- for(const b of r.beds)box(...b,'#8c9369');
- if(r.fountain){const [x,y,a,b]=r.fountain;c.fillStyle='#77a5a0';c.beginPath();c.ellipse(x,y,a,b,0,0,Math.PI*2);c.fill()}
- const dot=(x,y,size,color)=>{c.fillStyle=color;c.beginPath();c.arc(x,y,size/scale,0,Math.PI*2);c.fill()};
- for(const e of r.exits)dot(e.x,e.y,3,'#624734');
- for(const a of targets(game.s))dot(a.x,a.y,a.id==='horse'?4:2.6,a.id==='horse'?'#75412e':'#a9783d');
- for(const n of game.s.npcs.filter(n=>n.room===p.room))dot(n.x,n.y,1.7,'#3c5247');
- const pin=game.pin;if(pin&&pin.room===p.room){c.strokeStyle='#a23e2d';c.lineWidth=2/scale;c.beginPath();c.arc(pin.x,pin.y,6/scale,0,Math.PI*2);c.stroke()}
- c.translate(p.x,p.y);c.rotate(p.heading||0);c.scale(1/scale,1/scale);c.fillStyle='#fff5cc';c.strokeStyle='#3c382e';c.lineWidth=1.6;c.beginPath();c.moveTo(0,-7);c.lineTo(5,5);c.lineTo(0,3);c.lineTo(-5,5);c.closePath();c.fill();c.stroke();c.setTransform(1,0,0,1,0,0)
+import {bounds,buildings,gardens,cottages,walls,groves,monuments,isOpen,landmark} from './geography.js?v=7';
+import {baseMap} from './terrain.js?v=7';
+import {parcels} from './city.js?v=7';
+export const chartNames=[['court','Topkapı Sarayı'],['tahtakale','Tahtakale'],['galata','Galata'],['bogaz','Boğaziçi'],['uskudar','Üsküdar'],['strait','Boğaz']];
+export function chart(c,game,cx,cy,scale,overview=false){
+ const w=c.canvas.width,h=c.canvas.height,s=game.s;
+ c.save();c.fillStyle='#989b74';c.fillRect(0,0,w,h);c.translate(w/2-cx*scale,h/2-cy*scale);c.scale(scale,scale);
+ baseMap(c);
+ for(const [x,y,w,h] of gardens){c.fillStyle='#667a53';c.fillRect(x,y,w,h)}
+ for(const [x,y,w,h] of [...cottages,...walls]){c.fillStyle='#92795b';c.fillRect(x,y,w,h)}
+ c.fillStyle='#778962';for(const [x,y] of groves)if(Math.abs(x-cx)<w/(2*scale)+12&&Math.abs(y-cy)<h/(2*scale)+12)c.fillRect(x-6,y-5,13,10);
+ for(const m of monuments){c.fillStyle='#766e55';c.fillRect(m.x,m.y,m.w,m.h)}
+ for(const b of buildings){
+  c.fillStyle=parcels[b.id]?.build&&!isOpen(b.id,s)?'#a5a170':b.parent==='court'||b.parent==='enderun'?'#806b54':'#976b51';
+  c.fillRect(b.x,b.y,b.w,b.h);c.lineWidth=1/scale;c.strokeStyle='#d8c99e';c.strokeRect(b.x,b.y,b.w,b.h);
+ }
+ if(!overview){c.fillStyle='#4d614a';for(const n of s.npcs)if(Math.abs(n.x-cx)<w/(scale*2)&&Math.abs(n.y-cy)<h/(scale*2))c.fillRect(n.x-2,n.y-2,4,4)}
+ if(game.motion.length){
+  c.strokeStyle='#8c583c';c.lineWidth=1.8/scale;c.setLineDash([4/scale,3/scale]);c.beginPath();c.moveTo(s.player.x,s.player.y);
+  for(const [x,y] of game.motion)c.lineTo(x,y);c.stroke();c.setLineDash([]);
+ }
+ c.restore();
+ const xy=(x,y)=>[(x-cx)*scale+w/2,(y-cy)*scale+h/2];
+ if(overview){
+  c.textAlign='center';c.font='bold 17px Georgia';c.lineWidth=4;c.strokeStyle='#e3d5ab';c.fillStyle='#2c4339';
+  for(const [id,name] of chartNames){const [x,y]=xy(...landmark(id));c.strokeText(name,x,y-12);c.fillText(name,x,y-12)}
+ }
+ if(game.pin){const [x,y]=xy(game.pin.x,game.pin.y);c.strokeStyle='#913f2c';c.lineWidth=2;c.beginPath();c.arc(x,y,6,0,Math.PI*2);c.stroke()}
+ const [x,y]=xy(s.player.x,s.player.y);
+ c.save();c.translate(x,y);c.rotate(s.player.heading||0);c.beginPath();c.moveTo(0,-7);c.lineTo(5,5);c.lineTo(0,3);c.lineTo(-5,5);c.closePath();c.fillStyle='#fff2c9';c.fill();c.strokeStyle='#3c493a';c.lineWidth=1.6;c.stroke();c.restore();
+}
+export function overview(canvas,game){
+ const [l,t,r,b]=bounds;canvas.width=800;canvas.height=Math.round(800*(b-t)/(r-l));
+ const scale=canvas.width/(r-l),cx=(l+r)/2,cy=(t+b)/2;
+ const draw=()=>chart(canvas.getContext('2d'),game,cx,cy,scale,true);
+ function pick(e){const box=canvas.getBoundingClientRect();return [l+(e.clientX-box.left)/box.width*(r-l),t+(e.clientY-box.top)/box.height*(b-t)]}
+ draw();return {draw,pick};
 }

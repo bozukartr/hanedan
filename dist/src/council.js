@@ -1,4 +1,5 @@
-import {people,personnel} from './roster.js?v=6';
+import {worldPoint} from './geography.js?v=7';
+import {people,personnel} from './roster.js?v=7';
 // District accounts and officers persist independently of the sultan's location.
 export const districts = {
   palace: {name:'Divan Meydanı', room:'court', x:500, y:350},
@@ -55,7 +56,7 @@ export function issue(game,type,zone,amount,officer){
  if(personnel.get(officer).slot===8){
   job.executor=aide(s,officer).id;
   const chief=s.npcs.find(n=>n.id===officer);
-  game.assign(chief,'supervise',chief.room,[chief.x,chief.y],Number.MAX_SAFE_INTEGER);
+  game.assign(chief,'supervise',chief.room,[400,330],Number.MAX_SAFE_INTEGER);chief.goal=[chief.x,chief.y];
  }
  s.office.jobs.push(job);
  dispatch(game,job,job.phase==='pickup'?districts.pier:districts[zone]);
@@ -77,7 +78,8 @@ export function tickOrders(game){
  for(const j of [...s.office.jobs]){
   const n=s.npcs.find(n=>n.id===(j.executor??j.officer)),site=districts[j.zone];
   const target=j.phase==='pickup'?districts.pier:site;
-  if(n.room!==target.room||Math.hypot(n.x-target.x,n.y-target.y)>6)continue;
+  const [x,y]=worldPoint(target.room,target.x,target.y);
+  if(Math.hypot(n.x-x,n.y-y)>6)continue;
   if(j.phase==='pickup'){j.phase='travel';dispatch(game,j,site);continue}
   if(j.phase==='travel'){j.phase='work';j.due=s.minutes+6+3*j.amount;continue}
   if(s.minutes<j.due)continue;

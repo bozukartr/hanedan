@@ -1,6 +1,6 @@
 # HANEDAN
 
-30 Eylül 1520 sabahı Topkapı Sarayı’nda Sultan Süleyman’ı yönet. Divan Meydanı, Kubbealtı, Matbah-ı Âmire ve Hasbahçe birbirine yürünebilir geçitlerle bağlıdır. Saray düzeni ve kişilerin günlük işleri oyun için yorumlanmıştır.
+30 Eylül 1520 sabahı Topkapı Sarayı’nda Sultan Süleyman’ı yönet. Saray, Tahtakale, Galata, Boğaz ve Üsküdar tek bir Canvas dünyasını paylaşır. Kubbealtı’ndan yürüyerek çıkabilir, yol boyunca çarşıya uğrayabilir ve kıyıdan kayıkla karşıya geçebilirsin. Saray düzeni ve kişilerin günlük işleri oyun için yorumlanmıştır.
 
 ## Yerelde oyna
 
@@ -12,25 +12,27 @@ Proje kökünde `python3 -m http.server 8080 --directory dist` çalıştır, ard
 | --- | --- |
 | WASD veya yön tuşları | Hareket |
 | Shift + hareket | Koş |
-| Tıkla veya dokun | Zemine yürü, görevliye yaklaş, geçide git |
-| E | Yakındaki görevliyle konuş veya kapıdan geç |
+| Tıkla veya dokun | Zemine yürü veya görevliye yaklaş |
+| E | Yakındaki görevli, at veya tezgâhla etkileş |
 | F | Ferman ver |
-| M | Saray planını aç |
+| M | İstanbul haritasını aç ve hedef seç |
 | J | Vekayinâmeyi aç |
 | Boşluk | Duraklat veya sürdür |
 | Esc | Pencereyi kapat veya oyunu duraklat |
 
-Saray görevlilerini maiyetine alabilir, görevlerine gönderebilir ve ihsanda bulunabilirsin. Fermanlar görevlilerin rotalarını, sarayın görünümünü veya hazineyi değiştirir. Görevliler geçitleri kullanarak yürür. Akşam meydan görevlileri Kubbealtı’na çekilir. Hazineye gece yarısında tahsisat gelir. İlerleme aynı tarayıcıda ve aynı site adresinde otomatik kaydedilir.
+Saray görevlilerini maiyetine alabilir, görevlerine gönderebilir ve ihsanda bulunabilirsin. Fermanlar görevlilerin rotalarını, sarayın görünümünü veya hazineyi değiştirir. Görevliler binaların açık kapılarından yürüyerek geçer. Akşam meydan görevlileri Kubbealtı’na çekilir. Hazineye gece yarısında tahsisat gelir. İlerleme aynı tarayıcıda ve aynı site adresinde otomatik kaydedilir.
 
 ## Kaynak düzeni
 
 | Dosya | Sorumluluk |
 | --- | --- |
-| dist/src/data.js | Bölgeler, geçitler, engeller, günlük rotalar ve ferman tanımları |
-| dist/src/navigation.js | Yürüme alanları, engelleri dolaşan rota araması ve hareket |
+| dist/src/data.js | Yer adları, iş noktaları, günlük rotalar ve ferman tanımları |
+| dist/src/geography.js | Dünya koordinatları, bina ayak izleri, kıyılar ve çarpışmalar |
+| dist/src/world-route.js | Oyuncu ve halk için ortak yol bulma |
+| dist/src/terrain.js · cartography.js | Dünya karoları, radar ve şehir haritası |
 | dist/src/simulation.js | Dünya saati, emirler, maiyet, NPC davranışı, kayıt ve olaylar |
 | dist/src/art.js | Canvas 2D mimari, bitki, su, kıyafet ve portre çizim komutları |
-| dist/src/render.js | Bölge çizimi, önbellek, derinlik sırası, ışık ve animasyon |
+| dist/src/render.js | Kesintisiz kamera, görünen karoların önbelleği, çatıların açılması ve animasyon |
 | dist/src/main.js | Giriş, oyun döngüsü, defterler, ses ve kullanıcı arayüzü |
 | test/palace.test.js | Başsız simülasyon ve rota testleri |
 
@@ -44,11 +46,11 @@ Ekonomi, diplomasi, savaş, hanedan ve veraset bu arayüz üzerinden genişletil
 
 ## Testler
 
-Node.js 20 veya yenisiyle proje kökünde `npm test` çalıştır. Testler geçitleri, çarpışmayı, günlük rotaları, fermanların maliyetini ve NPC hareketini, kayıt yüklemeyi ve sistem olaylarını kontrol eder.
+Node.js 20 veya yenisiyle proje kökünde `npm test` çalıştır. Testler eşiklerden yürümeyi, Boğaz geçişini, eski kayıtların dönüşümünü, çarpışmayı, günlük rotaları, fermanların maliyetini ve NPC hareketini, kayıt yüklemeyi ve sistem olaylarını kontrol eder.
 
 ## İstanbul ve oyun içi HUD
 
-Kamera oyuncuyu izler. Aynı dış haritada saraydan doğuya yürüyerek ahırlara ve çarşıya, güneydoğuya yürüyerek iskeleye ulaşılır. Radara dokunarak haritayı açabilir ve işaret koyabilirsin. Alt çubuktan Hüküm (F), Teşkilat (T), Harita (M), Defter (J) ve Heybe (I) açılır. Esc açık paneli kapatır veya oyun menüsünü açar. Dokunmatik ekranda sol çubuğu sürükleyerek yürür, kenarına çekerek koşarsın. Teşkilat araması tüm kadroda isim, görev ve birim bulur. Kırat’ın yanında E ile bin, R ile in. E ile çeşmede matara doldurabilir, çarşıda ekmek alabilir veya iskele ambarında bir vekile sevk emri verebilirsin.
+Kamera oyuncuyu izler. Saraydan doğuya yürüyerek ahırlara ve çarşıya, güneydoğuya yürüyerek iskeleye ulaşılır. Radara dokunarak haritayı açabilir ve işaret koyabilirsin. Alt çubuktan Hüküm (F), Teşkilat (T), Harita (M), Defter (J) ve Heybe (I) açılır. Esc açık paneli kapatır veya oyun menüsünü açar. Dokunmatik ekranda sol çubuğu sürükleyerek yürür, kenarına çekerek koşarsın. Teşkilat araması tüm kadroda isim, görev ve birim bulur. Kırat’ın yanında E ile bin, R ile in. E ile çeşmede matara doldurabilir, çarşıda ekmek alabilir veya iskele ambarında bir vekile sevk emri verebilirsin.
 
 ## Mesai ve hükümler
 
@@ -66,7 +68,7 @@ Birim amirine uzmanlığına uygun bir hüküm verildiğinde müsait astlarında
 
 ## İstanbul, mesai ve izin
 
-Harita → İstanbul haritası ile semt seçildiğinde oyuncu kapıları ve iskeleleri izler. Bir yön tuşu veya dokunmatik çubuk yolculuğu keser. Üsküdar ile Rumeli kıyısı arasında kayıkla Boğaz üzerinde serbestçe dolaşılır. Saray yaklaşımında Alay Meydanı ve Bâbüsselâm, Divan Meydanı’nın batısında Kubbealtı ve doğusunda mutfaklar yer alır. Bâbüssaâde iç avluya, Arz Odası’na ve Hasbahçe yoluna açılır. Semt mesafeleri, bina içleri ve parseller oynanış ölçeğinde yorumlanmıştır.
+Harita (M) bütün İstanbul’u gösterir. Haritaya dokun veya listeden bir yer seç ve **Buraya git** düğmesine bas. Radar seçtiğin rotayı gösterir. Bir yön tuşu veya dokunmatik çubuk yolculuğu keser. Oyuncu suya ulaştığında yolculuk kayıkla sürer. Karaya çıkınca yürüyüşe devam eder. Binaya yaklaşıp eşiği geçtiğinde çatı açılır, sokak görünür kalır. Önceki sürümde kaydedilmiş yerel konumlar ilk yüklemede dünya koordinatlarına dönüştürülür. Saray yaklaşımında Alay Meydanı ve Bâbüsselâm, Divan Meydanı’nın batısında Kubbealtı ve doğusunda mutfaklar yer alır. Bâbüssaâde iç avluya, Arz Odası’na ve Hasbahçe yoluna açılır. Semt mesafeleri, bina içleri ve parseller oynanış ölçeğinde yorumlanmıştır.
 
 Atölye görevlileri girdileri alır, tezgâha taşır, işler ve teslim noktasına yürür. Ürün teslimde kayda geçer. Haftalık izin sırası, akşam gezisi, yemek ve gece nöbeti kişiye göre değişir. Galata meyhanesi ile han 1520’de açıktır. Tahtakale’de şerbet tezgâhı başlangıçta kullanılabilir. Kahvehane oyun takviminde 1554’te açılır.
 

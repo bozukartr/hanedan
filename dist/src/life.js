@@ -1,5 +1,6 @@
-import {citySpots} from './city.js?v=6';
-import {places} from './district.js?v=6';
+import {worldPoint,water,locationAt} from './geography.js?v=7';
+import {citySpots} from './city.js?v=7';
+import {places} from './district.js?v=7';
 
 export function initialLife(){
  return {stamina:90,thirst:75,bread:1,water:1,cargo:false,deliveries:0,
@@ -7,14 +8,16 @@ export function initialLife(){
 }
 export function targets(state){
  const horse=state.life.horse;
- const points=[...places.filter(point=>point.room===state.player.room),...citySpots(state)];
- if(!state.life.mounted && state.player.room===horse.room)
+ const points=[...places,...citySpots(state)].map(point=>{
+  const [x,y]=worldPoint(point.room,point.x,point.y);return {...point,x,y};
+ });
+ if(!state.life.mounted)
   points.push({id:'horse',label:'Ata bin',name:'Kırat',x:horse.x,y:horse.y,room:horse.room});
  return points;
 }
-export function dismount(game){
+export function dismount(game,at){
  const s=game.s;if(!s.life.mounted)return false;
- const {room,x,y,face}=s.player;
+ const face=s.player.face,[x,y]=at??[s.player.x,s.player.y],room=locationAt(x,y,s);
  Object.assign(s.life.horse,{room,x,y,face});s.life.mounted=false;
  game.log('Kırat burada bekliyor.');return true;
 }
@@ -23,6 +26,7 @@ export function usePlace(game,id){
  if(!site||Math.hypot(p.x-site.x,p.y-site.y)>34)return 'Biraz daha yaklaş.';
  switch(id){
  case 'horse':
+  if(water(p.x,p.y))return 'Ata karada binebilirsin.';
   if(l.cargo)return 'Çuvalı taşırken ata binemezsin.';
   l.mounted=true;break;
  case 'bread':
