@@ -1,18 +1,20 @@
-import {cast,rooms,orders} from './data.js?v=2';
-import {path,travel,walkable} from './navigation.js?v=2';
-import {initialLife, targets, moveSpeed, updateNeeds, dismount} from './life.js?v=2';
+import {newStores,occupation,shift} from './work.js?v=3';
+import {treasuryOffice,tickOrders} from './council.js?v=3';
+import {cast,rooms,orders} from './data.js?v=3';
+import {path,travel,walkable} from './navigation.js?v=3';
+import {initialLife, targets, moveSpeed, updateNeeds, dismount} from './life.js?v=3';
 const SAVE='hanedan.saray.v1';
 export function fresh(){
- return {version:1,life:initialLife(),minutes:480,player:{room:'court',x:391,y:220,face:1},gold:12400,esteem:72,peace:81,
+ return {version:1,stores:newStores(),office:treasuryOffice(),life:initialLife(),minutes:480,player:{room:'court',x:391,y:220,face:1},gold:12400,esteem:72,peace:81,
  events:[{time:480,text:'Sultan Süleyman Divan Meydanı’na çıktı.'}],issued:{},lastGrant:-1,
- npcs:cast.map((d,i)=>({id:d.id,room:d.home,x:d.start[0],y:d.start[1],face:i%2?-1:1,point:0,wait:3+i*2,path:[],duty:'routine',until:0})),sound:false};
+ npcs:cast.map((d,i)=>({id:d.id,room:d.home,x:d.start[0],y:d.start[1],face:i%2?-1:1,work:{progress:0,cycles:0,last:null,status:'Mesaiye hazırlanıyor'},point:0,wait:3+i*2,path:[],duty:'routine',until:0})),sound:false};
 }
 export function restore(raw){
  const initial=fresh();if(!raw)return initial;
  try{const v=JSON.parse(raw);if(v.version!==1||!v.player||!rooms[v.player.room]||!walkable(v.player.room,v.player.x,v.player.y)||!Number.isFinite(v.player.x+v.player.y))return initial;
  for(const k of ['gold','esteem','peace','minutes'])if(!Number.isFinite(v[k])||v[k]<0)return initial;
  if(!Array.isArray(v.npcs)||!Array.isArray(v.events)||!v.issued)return initial;
- return {...initial,...v,life:{...initial.life,...v.life,horse:{...initial.life.horse,...v.life?.horse}},events:v.events.filter(e=>typeof e.text==='string'&&Number.isFinite(e.time)).slice(-100),npcs:initial.npcs.map(n=>{
+ return {...initial,...v,life:{...initial.life,...v.life,cargo:false,horse:{...initial.life.horse,...v.life?.horse}},events:v.events.filter(e=>typeof e.text==='string'&&Number.isFinite(e.time)).slice(-100),npcs:initial.npcs.map(n=>{
  const a=v.npcs.find(x=>x.id===n.id);
  return a&&rooms[a.room]&&Number.isFinite(a.x+a.y)&&walkable(a.room,a.x,a.y)?{...n,...a,path:[],wait:0}:n})};
  }catch{return initial}
@@ -33,7 +35,7 @@ export class Palace {
  this.log('Ferman mühürlendi: '+d.name+'.');this.emit('decree',id);return true;
  }
  assign(n,duty,room,goal,until){Object.assign(n,{duty,goalRoom:room,goal,until,path:[],wait:0,point:0})}
- escort(n){if(n.duty==='escort'){this.routine(n);this.log(n.id==='guard'?'Muhafız nöbetine döndü.':'Refakat sona erdi.');return}
+ escort(n){if(n.duty==='mandate')return; if(n.duty==='escort'){this.routine(n);this.log(n.id==='guard'?'Muhafız nöbetine döndü.':'Refakat sona erdi.');return}
  this.assign(n,'escort',this.s.player.room,[this.s.player.x,this.s.player.y],Infinity);this.log(this.note(n).name+' maiyete katıldı.')}
  routine(n){const d=this.note(n);this.assign(n,'routine',d.home,d.start,0)}
  enter(exit){
@@ -47,7 +49,7 @@ export class Palace {
  return [...targets(this.s).map(e=>({kind:'place',item:e,x:e.x,y:e.y})),...this.s.npcs.filter(n=>n.room===p.room).map(n=>({kind:'npc',item:n,x:n.x,y:n.y})),...rooms[p.room].exits.map(e=>({kind:'exit',item:e,x:e.x,y:e.y}))].map(a=>({...a,d:Math.hypot(a.x-p.x,a.y-p.y)})).filter(a=>a.d<=34).sort((a,b)=>a.d-b.d)[0]}
  tick(dt,dx=0,dy=0,run=false){
  const s=this.s,p=s.player,day=Math.floor(s.minutes/1440);s.minutes+=dt*1.3;p.moving=false;
- if(Math.floor(s.minutes/1440)>day){s.gold+=360;this.log('Günlük saray tahsisatı hazineye girdi: 360 akçe.')}
+ if(Math.floor(s.minutes/1440)>day){for(const a of Object.values(s.office.accounts))a.levies=Math.max(0,Math.min(12,a.levies+2));s.gold+=360;this.log('Günlük saray tahsisatı hazineye girdi: 360 akçe.')}
  if(dx||dy){this.motion=[];this.target=null;const len=Math.hypot(dx,dy),step=dt*moveSpeed(s.life,run)/len;
  if(walkable(p.room,p.x+dx*step,p.y)){p.x+=dx*step;p.moving=true}
  if(walkable(p.room,p.x,p.y+dy*step)){p.y+=dy*step;p.moving=true}
@@ -55,6 +57,7 @@ export class Palace {
  }else if(this.motion.length){p.path=this.motion;const [gx,gy]=p.path[0];p.heading=Math.atan2(gx-p.x,p.y-gy);travel(p,dt,moveSpeed(s.life,false))}
  updateNeeds(s,dt,run);
  for(const n of s.npcs)this.tickNPC(n,dt);
+ tickOrders(this);
  for(const sys of this.systems.values())sys.tick?.(dt,this);
  }
  tickNPC(n,dt){
@@ -64,7 +67,7 @@ export class Palace {
  if(n.path.length){travel(n,dt,n.duty==='escort'?73:23);return}
  n.wait-=dt;if(n.wait>0)return;
  const hour=Math.floor(this.s.minutes/60)%24;
- const room=n.duty==='routine'?(hour>=19||hour<6?(d.home==='court'?'council':d.home):d.home):n.goalRoom;
+ const room=n.duty==='routine'?(hour>=19||hour<6?(['lala','guard','scribe'].includes(n.id)?'council':d.home):d.home):n.goalRoom;
  if(room!==n.room){
  const ex=rooms[n.room].exits.find(e=>e.to===room)||rooms[n.room].exits.find(e=>e.to==='court');
  if(!ex)return;
@@ -72,8 +75,20 @@ export class Palace {
  else n.path=path(n.room,[n.x,n.y],[ex.x,ex.y]);return;
  }
  let goal=n.goal;
- if(n.duty==='routine'){const choices=room===d.home?d.routes:[[250,330],[560,345],[368,356]];
- goal=choices[n.point%choices.length];n.point++;n.wait=2+(n.point%4)}
+ if(n.duty==='routine'&&!shift(n,this.s.minutes)){
+ goal=occupation(n,d,this.s,dt);
+ if(goal)n.path=path(n.room,[n.x,n.y],goal);
+ return;
+ }
+ if(n.duty==='routine'&&hour===12){
+ const today=Math.floor(this.s.minutes/1440);
+ if(n.work.mealDay!==today){
+ const food=this.s.stores.meals>0?'meals':this.s.stores.bread>0?'bread':null;
+ if(food){this.s.stores[food]--;n.work.mealDay=today}
+ }
+ return;
+ }
+ if(n.duty==='routine'){goal=room===d.home?d.start:[250+d.start[0]%300,345];if(Math.hypot(n.x-goal[0],n.y-goal[1])<3)return}
  else if(n.duty==='watch'){goal=[[230,185],[559,184],[575,405],[220,400]][n.point++%4];n.wait=1}
  else if(n.duty==='escort'){if(Math.hypot(n.x-p.x,n.y-p.y)>28)goal=[p.x,p.y];n.wait=.25}
  else n.wait=3;

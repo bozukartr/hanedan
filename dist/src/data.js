@@ -20,7 +20,7 @@ export const cast=[
  {id:'page',name:'İlyas',role:'İçoğlanı',color:'#6e577d',home:'garden',start:[475,392],line:'Hasbahçe yolundan saray meydanına çıkılır, sultanım.',routes:[[475,392],[506,273],[298,273],[322,387]]},
  {id:'groom',name:'Osman',role:'Seyis',color:'#845434',home:'court',start:[908,265],line:'Kırat meydanda hazır, hünkârım. İndiğiniz yerde sizi bekler.',routes:[[908,265],[806,328],[537,383],[845,290]]},
  {id:'baker',name:'Hatice Usta',role:'Fırıncı',color:'#954133',home:'court',start:[968,403],line:'Tezgâhta taze ekmek var. Un çuvalları iskeleden gelir.',routes:[[968,403],[985,430],[944,439],[959,400]]},
- {id:'porter',name:'İshak',role:'İskele hamalı',color:'#416a7b',home:'court',start:[1445,740],line:'Sarayın unu burada. Çuvalı omuzlayıp mutfakta aşçıya verebilirsiniz.',routes:[[1445,740],[1353,772],[1230,759],[1425,749]]},
+ {id:'porter',name:'İshak',role:'İskele hamalı',color:'#416a7b',home:'court',start:[1445,740],line:'Sarayın unu burada. Mührünüz ulaşınca zahireyi buyurduğunuz yere götürürüz.',routes:[[1445,740],[1353,772],[1230,759],[1425,749]]},
  {id:'weaver',name:'Emine',role:'Dokumacı',color:'#617954',home:'court',start:[1090,415],line:'Bursa bezleri bugün iskeleden geldi. Tezgâhımı ikindiye kadar açık tutarım.',routes:[[1090,415],[1180,411],[1107,429],[1092,406]]}
 ];
 export const orders=[
