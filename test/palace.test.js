@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Palace,fresh,restore} from '../dist/src/simulation.js?v=7';
-import {rooms,dateText} from '../dist/src/data.js?v=7';
-import {worldPoint,canStand,landmark,isOpen,locationAt,water,structure} from '../dist/src/geography.js?v=7';
-import {worldRoute,clear} from '../dist/src/world-route.js?v=7';
+import {Palace,fresh,restore} from '../dist/src/simulation.js?v=8';
+import {rooms,dateText} from '../dist/src/data.js?v=8';
+import {worldPoint,canStand,landmark,isOpen,locationAt,water,structure} from '../dist/src/geography.js?v=8';
+import {worldRoute,clear} from '../dist/src/world-route.js?v=8';
 function place(actor,id,point,s){[actor.x,actor.y]=worldPoint(id,...point);actor.room=locationAt(actor.x,actor.y,s)}
 
 function advance(game,seconds){for(let i=0;i<seconds*20;i++)game.tick(.05)}
@@ -50,10 +50,10 @@ test('Kayıt ve bozuk kayıt kurtarma',()=>{
 test('Yeni sistemler ferman olaylarını ve simülasyon zamanını alır',()=>{
  const g=new Palace(),seen=[];g.register('diplomasi',{event:(name)=>seen.push(name),tick:(dt)=>seen.push(dt)});g.order('plant');g.tick(.01);assert.deepEqual(seen,['record','decree',.01])
 });
-import {initialLife,usePlace,dismount,consume} from '../dist/src/life.js?v=7';
+import {initialLife,usePlace,dismount,consume} from '../dist/src/life.js?v=8';
 test('Eski kayıt yeni heybe ve at durumunu alır',()=>{const old=fresh();delete old.life;assert.deepEqual(restore(JSON.stringify(old)).life,initialLife())});
 test('At, çuval, mutfak ve heybe',()=>{const g=new Palace(),p=g.s.player,l=g.s.life;Object.assign(p,l.horse);assert.equal(usePlace(g,'horse'),'');assert.ok(l.mounted);assert.ok(dismount(g));Object.assign(p,{x:1430,y:750});assert.match(usePlace(g,'sack'),/vekil/);assert.equal(l.cargo,false);assert.ok(consume(g,'bread'))});
-import {issue,revoke} from '../dist/src/council.js?v=7';
+import {issue,revoke} from '../dist/src/council.js?v=8';
 test('Oyuncu Hasbahçe’de iken saray ve esnaf üretir ve kayda geçer',()=>{
  const g=new Palace();place(g.s.player,'garden',[330,300],g.s);advance(g,140);
  for(const n of g.s.npcs.slice(0,11))assert.ok(n.work.cycles>0,n.id);
@@ -79,8 +79,8 @@ test('Fırıncı zahire yokken bekler, gelince pişirir. Öğle payı günde bir
  g.s.stores.grain=1;g.tickNPC(n,.25);assert.equal(n.work.cycles,1);assert.equal(g.s.stores.bread,12);
  g.s.minutes=720;g.tickNPC(n,.25);g.tickNPC(n,.25);assert.equal(g.s.stores.bread,11)
 });
-import {people,personnel,departments} from '../dist/src/roster.js?v=7';
-import {trades} from '../dist/src/work.js?v=7';
+import {people,personnel,departments} from '../dist/src/roster.js?v=8';
+import {trades} from '../dist/src/work.js?v=8';
 test('281 ayrı sicil, bağımsız mesai ve padişaha ulaşan emir zinciri',()=>{
  assert.equal(new Set(people.map(n=>n.name)).size,281);
  for(const d of people){
@@ -128,9 +128,9 @@ test('Hammadde alımında ayrılır, mamul ancak fiziki teslimde kayda girer',()
  assert.equal(worker.work.cycles,1);assert.equal(copy.s.stores[output],stock+1);assert.equal(copy.s.stores[key],before-1);
  const end=worldPoint(d.plan.receiver.room,...d.plan.receiver.point);assert.ok(Math.hypot(worker.x-end[0],worker.y-end[1])<4)
 });
-import {commission} from '../dist/src/estate.js?v=7';
-import {coffeeOpen,parcels} from '../dist/src/city.js?v=7';
-import {period,routineSite} from '../dist/src/daylife.js?v=7';
+import {commission} from '../dist/src/estate.js?v=8';
+import {coffeeOpen,parcels} from '../dist/src/city.js?v=8';
+import {period,routineSite} from '../dist/src/daylife.js?v=8';
 test('Boğaz iki kıyıdan kesintisiz aşılır ve sürüş kıyıda sona erer',()=>{
  const g=new Palace(),p=g.s.player;
  Object.assign(p,{x:1510,y:605});g.s.life.mounted=true;g.s.npcs=[];

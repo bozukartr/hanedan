@@ -1,8 +1,10 @@
-import {seed,rect,poly,oval,star,arch,stone,building,bed,tree,fountain,person} from './art.js?v=7';
-import {house,stand,horse,carriedSack} from './istanbul-art.js?v=7';
-import {bounds,buildings,gardens,cottages,gardenPool,pool,gates,walls,water,shores,isOpen,cityStalls,monuments,groves} from './geography.js?v=7';
-import {tileSize,terrainTile} from './terrain.js?v=7';
-import {parcels} from './city.js?v=7';
+import {kitchens,councilHall,gateWing,standard,bakehouseSmoke,innerGate} from './palace-art.js?v=8';
+import {gesture} from './gestures.js?v=8';
+import {seed,rect,poly,oval,star,arch,stone,building,bed,tree,fountain,person} from './art.js?v=8';
+import {house,stand,horse,carriedSack} from './istanbul-art.js?v=8';
+import {bounds,buildings,gardens,cottages,gardenPool,pool,gates,walls,water,shores,isOpen,cityStalls,monuments,groves,locationAt} from './geography.js?v=8';
+import {tileSize,terrainTile} from './terrain.js?v=8';
+import {parcels} from './city.js?v=8';
 function boat(c,x,y,tint){
  poly(c,[[x-28,y],[x-19,y+8],[x+16,y+8],[x+32,y-2],[x+8,y+2]],'#604b33');rect(c,x,y-29,2,32,'#6d573b');
  poly(c,[[x-1,y-29],[x-2,y-2],[x-20,y-5]],tint);
@@ -11,12 +13,10 @@ function drawResident(ctx,n,game,t){
  if(water(n.x,n.y)){boat(ctx,n.x,n.y,'#decba5');return}
  const d=game.note(n),plan=d.plan,phase=t+(plan?.seed??n.id.length)*.713;
  const working=plan&&n.duty==='routine'&&n.work.period==='work'&&!n.moving&&n.work.leg==='bench'&&n.work.progress>0;
- const pose=plan?.parcel==='watch'?'guard':['bostan','bahce'].includes(d.unit)?'gardener':['imaret','helva','firin'].includes(d.unit)?'cook':n.id;
- const rest=plan&&n.duty==='routine'&&n.work.status==='İkametinde dinleniyor';
- ctx.save();
- if(rest){ctx.translate(0,n.y*.25);ctx.scale(1,.75)}
- person(ctx,n.x,n.y,d.color,n.face,n.moving,phase,pose);
- ctx.restore();
+ const pose=['ocak','kapi'].includes(d.unit)?'guard':['bostan','bahce'].includes(d.unit)?'gardener':['imaret','helva','firin'].includes(d.unit)?'cook':n.id;
+ const action=gesture(n,d,game.s);
+ person(ctx,n.x,n.y,d.color,n.face,n.moving,phase,pose,action,Math.cos(n.heading??Math.PI)>.65);
+ if(action)return;
  const mandate=game.s.office.jobs.some(j=>(j.executor??j.officer)===n.id&&j.type==='provision'&&j.phase!=='pickup');
  if(mandate){carriedSack(ctx,n.x-6*n.face,n.y-13);return}
  if(n.duty!=='routine'||n.work.period!=='work'||!plan)return;
@@ -37,7 +37,7 @@ function sprite(x,y,w,h,paint,depth=y+h){
 }
 function buildingSprite(b,inside=false){
  const {x,y,w,h,cx,front}=b;
- return sprite(x-14,y-58,w+55,h+73,c=>{
+ return sprite(x-14,y-101,w+55,h+116,c=>{
   const r=seed(Math.floor(cx*front));
   if(inside){
    rect(c,x,y,w,h,'#9e8761');stone(c,x+3,y+3,w-6,h-6,r,['#d4c294','#cabc96','#dacba3','#cec19a']);
@@ -49,9 +49,11 @@ function buildingSprite(b,inside=false){
    else for(const a of [x+12,x+w-35]){rect(c,a,y+14,23,9,'#775d40');for(let i=0;i<3;i++)oval(c,a+4+i*7,y+14,3,2,b.id==='kitchen'?'#aa7846':'#c6ae7d')}
    for(const a of [x,x+w-4])rect(c,a,y,4,h,'#9c9475');
    rect(c,x,front-3,w/2-18,3,'#b8a580');rect(c,cx+18,front-3,w/2-18,3,'#b8a580');
-  }else if(['council','kitchen','arz','has','icHazine','mosqueLand'].includes(b.id)){
+  }else if(b.id==='kitchen')kitchens(c,b,r);
+  else if(b.id==='council')councilHall(c,b,r);
+  else if(['arz','has','icHazine','mosqueLand'].includes(b.id)){
    stone(c,x,y,w,h,r);building(c,x,front-60,w,Math.max(3,Math.floor(w/31)),b.id==='kitchen'?4:b.id==='council'?3:2,r);
-   if(b.id==='council'||b.id==='mosqueLand'){
+   if(b.id==='mosqueLand'){
     const tx=x+13;stone(c,tx,y-32,16,39,r);rect(c,tx-2,y-32,20,4,'#99896a');
     poly(c,[[tx-2,y-33],[tx+8,y-50],[tx+18,y-33]],'#566f65');rect(c,tx+7,y-53,2,5,'#b89a50');
    }
@@ -68,7 +70,7 @@ function scenery(){
    result.push(sprite(xx-33,yy-84,70,91,c=>tree(c,xx,yy,58+(i%3)*8,j%2?'plane':'cypress',i*13+j),yy));
   }
  }
- for(const [i,[x,y,w,h]] of cottages.entries())result.push(sprite(x-12,y-33,w+52,h+48,c=>house(c,{x,y:y+h,w,h:h+5+(i%2)*9,kind:'house'}),y+h));
+ for(const [i,[x,y,w,h]] of cottages.entries())result.push(sprite(x-12,y-33,w+52,h+48,c=>house(c,{x,y:y+h,w,h:h+5+(i%2)*9,kind:locationAt(x,y+h+1)}),y+h));
  for(const a of cityStalls)result.push(sprite(a.x-6,a.y-49,a.w+14,56,c=>stand(c,a),a.y));
  for(const [x,y,w] of walls)result.push(sprite(x-2,y-25,w+4,33,c=>{
   stone(c,x,y-19,w,24,seed(x));rect(c,x,y-21,w,3,'#b09e79');for(let i=0;i<w-7;i+=18)rect(c,x+i,y-25,9,5,'#dccba4')
@@ -79,6 +81,8 @@ function scenery(){
    poly(c,[[xx-13,y-35],[xx,y-56],[xx+13,y-35]],'#61766c');rect(c,xx-1,y-61,2,6,'#b99755');rect(c,xx-12,y-36,24,3,'#aaa888');
   },y+4));
  }
+ for(const [x,y,w] of [[290,165,60],[451,165,59],[302,460,52],[448,460,52]])result.push(sprite(x-9,y-42,w+18,47,c=>gateWing(c,x,y,w,y===165),y));
+ result.push(sprite(338,106,135,72,c=>innerGate(c,401,165),166));
  const trees=Array.from({length:8},(_,i)=>sprite(0,0,70,90,c=>tree(c,35,80,41+i*4,i%3?'plane':'cypress',730+i)));
  for(const [x,y,i] of groves){const treeSprite=trees[i];result.push({x:x-35,y:y-80,w:70,h:90,depth:y,draw(c){c.save();c.translate(x-35,y-80);treeSprite.draw(c);c.restore()}})}
  for(const m of monuments){
@@ -117,7 +121,7 @@ export class Renderer{
  }
  render(game,t){
   const s=game.s,p=s.player,c=this.c,canvas=c.canvas,ratio=canvas.clientWidth/Math.max(1,canvas.clientHeight);
-  const vw=Math.max(1,Math.min(810,Math.round(440*ratio))),vh=Math.max(1,Math.round(vw/ratio));
+  const vw=Math.max(1,Math.min(810,Math.round((ratio<.85?555:465)*ratio))),vh=Math.max(1,Math.round(vw/ratio));
   if(canvas.width!==vw||canvas.height!==vh){canvas.width=vw;canvas.height=vh;c.imageSmoothingEnabled=false}
   this.camX=Math.round(Math.max(bounds[0],Math.min(bounds[2]-vw,p.x-vw/2)));
   this.camY=Math.round(Math.max(bounds[1],Math.min(bounds[3]-vh,p.y-vh*.57)));
@@ -133,12 +137,17 @@ export class Renderer{
   const overlay=(depth,draw)=>items.push({depth,draw});
   const hide=new Set();
   for(const b of buildings){
-   if(!inView(b.x-18,b.y-62,b.w+52,b.h+83))continue;
+   if(!inView(b.x-18,b.y-102,b.w+52,b.h+124))continue;
    if(parcels[b.id]?.build&&!isOpen(b.id,s)){lot(c,b,s.estate[b.id]);continue}
    const cut=isOpen(b.id,s)&&((p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.front)||(Math.abs(p.x-b.cx)<22&&p.y>=b.front&&p.y<b.front+13));
-   if(!cut)hide.add(b.id);
+   if(!cut){
+    hide.add(b.id);
+    poly(c,[[b.x,b.front-3],[b.x+b.w,b.front-3],[b.x+b.w+19,b.front+10],[b.x+22,b.front+10]],'#54513933');
+   }
    items.push(this.facades.get(b.id)[cut?1:0]);
   }
+  for(const [x,y] of [[366,173],[436,173],[365,466],[435,466],[369,704],[431,704]])if(inView(x-3,y-60,22,65))overlay(y,c=>standard(c,x,y,t));
+  if(hide.has('kitchen')&&s.minutes%1440>280&&s.minutes%1440<1180)overlay(181,c=>{for(const x of [632,710,787])bakehouseSmoke(c,x,78,t+x)});
   for(const f of [pool,gardenPool])if(inView(f[0]-65,f[1]-45,130,80))overlay(f[1]+7,c=>fountain(c,f,t));
   if(game.active('plant'))for(const [x,y,w,h] of gardens.slice(0,4))for(let i=12;i<w-10;i+=7)oval(c,x+i,y+h-10,2,2,'#ad5753');
   if(game.active('meal'))overlay(352,c=>{rect(c,491,341,48,8,'#8c6643');for(let i=0;i<4;i++)oval(c,497+i*10,342,4,2,'#d6bc91')});
@@ -148,7 +157,7 @@ export class Renderer{
   overlay(p.y,c=>{
    const {x,y}=p,atSea=water(x,y);
    if(atSea)boat(c,x,y,'#eed9ab');
-   else{if(s.life.mounted)horse(c,x,y,p.face,p.moving,t);person(c,x,y-(s.life.mounted?12:0),'#9d332e',p.face,p.moving&&!s.life.mounted,t,'sultan')}
+   else{if(s.life.mounted)horse(c,x,y,p.face,p.moving,t);person(c,x,y-(s.life.mounted?12:0),'#9d332e',p.face,p.moving&&!s.life.mounted,t,'sultan',p.signalUntil>s.minutes?'signal':'',Math.cos(p.heading??Math.PI)>.65)}
    const yy=y-(s.life.mounted?57:atSea?37:46);poly(c,[[x-3,yy-3],[x+3,yy-3],[x,yy]],'#fff1c5');
   });
   if(game.motion.length){const [x,y]=game.motion.at(-1);c.strokeStyle='#fff0c0';c.lineWidth=1;c.beginPath();c.ellipse(x,y,6,3,0,0,Math.PI*2);c.stroke()}

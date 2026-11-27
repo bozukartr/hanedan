@@ -1,3 +1,4 @@
+import {paintGesture} from './gestures.js?v=8';
 // Raster primitives and seeded ornament. Everything is drawn at world-pixel resolution.
 export function seed(n){return ()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296}}
 export function rect(c,x,y,w,h,color){c.fillStyle=color;c.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
@@ -78,19 +79,36 @@ export function fountain(c,[x,y,w,h],t){
  oval(c,x,y-4,10,4,'#c1b695');rect(c,x-3,y-18,6,14,'#d3c3a1');oval(c,x,y-18,14,5,'#acac8d');oval(c,x,y-20,14,4,'#e6d7b2');oval(c,x,y-21,9,2,'#91b7a5');rect(c,x-1,y-28,3,8,'#c5cbb2');
  for(let i=0;i<7;i++){let a=(t*.9+i/7)%1;rect(c,x+(i%2?1:-1)*a*14,y-27-Math.sin(a*Math.PI)*7+a*a*7,1,2,'#e9ecd0')}
 }
-export function person(c,x,y,color,face,walk,t,style='courtier'){
+export function person(c,x,y,color,face,walk,t,style='courtier',action='',back=false){
  const f=face||1,sway=walk?Math.sin(t*9)*2:0;
- c.save();c.translate(Math.round(x),Math.round(y));c.scale(f,1);oval(c,1,0,8,3,'#30372355');rect(c,-5,-4+sway,4,4,'#4a4031');rect(c,2,-4-sway,4,4,'#483f31');c.translate(0,walk?Math.round(Math.abs(sway)*-.5):0);
+ c.save();c.translate(Math.round(x),Math.round(y));c.scale(f,1);oval(c,1,0,8,3,'#30372355');rect(c,-5-sway*.65,-5+sway,4,5,'#4a4031');rect(c,2+sway*.65,-5-sway,4,5,'#483f31');
+ c.translate(0,walk?Math.round(-Math.abs(sway)*.65):Math.sin(t*1.8)>.9?-.5:0);
+ if(action==='rest'){c.translate(0,-1);c.scale(1,.71)}
+ if(action==='bow'){c.translate(0,-6);c.rotate(.39+Math.sin(t*2)*.025);c.scale(1,.86);c.translate(0,6)}
+ if(action==='write'||action==='tend'||action==='hammer')c.rotate(.08+Math.sin(t*3.4)*.075);
+ if(action==='stir')c.translate(Math.sin(t*4)*.7,0);
  poly(c,[[-4,-23],[4,-23],[6,-18],[6,-11],[9,-4],[3,-3],[-7,-4],[-5,-12],[-7,-16]],'#3d4436');
  poly(c,[[-4,-22],[4,-22],[5,-17],[4,-12],[7,-5],[-6,-5],[-4,-13],[-6,-17]],color);
  rect(c,-3,-19,2,12,'#f4dfad36');rect(c,1,-22,1,17,'#bc9a65');rect(c,-4,-13,9,2,'#b39461');rect(c,4,-17,3,5,'#785545');rect(c,4,-14,3,3,'#c6a079');
- if(style==='sultan')for(let j=0;j<5;j++){rect(c,-3+(j%2)*6,-19+j*3,2,1,'#e0b567')}
+ if(style==='sultan'){
+  poly(c,[[-6,-24],[-9,-21],[-8,-12],[-12,-4],[-6,-3],[-4,-14],[0,-22]],'#73332f');
+  poly(c,[[-7,-23],[-3,-24],[2,-22],[-3,-18],[-7,-17]],'#ddbf84');
+  poly(c,[[1,-21],[4,-21],[5,-11],[8,-5],[5,-4],[2,-12]],'#c39b58');
+  for(let j=0;j<5;j++){rect(c,-5+j%2*6,-18+j*3,2,1,'#efc677');rect(c,-8,-10+j,1,1,'#bd9653')}
+ }
  rect(c,-3,-30,7,8,'#705940');rect(c,-2,-29,7,6,'#c69e74');rect(c,3,-27,3,2,'#d2ab79');rect(c,2,-28,2,1,'#4b4736');rect(c,2,-24,3,1,'#674e3c');
  oval(c,0,-31,style==='sultan'?7:5,style==='sultan'?6:4,'#c6bf9f');oval(c,-1,-32,style==='sultan'?6:4,style==='sultan'?5:3,'#efdfba');rect(c,-4,-31,8,1,'#b3b199');
  if(style==='guard'){poly(c,[[-5,-31],[-4,-40],[0,-40],[4,-33],[4,-30]],'#ded2b0');rect(c,-4,-32,8,2,'#994135');rect(c,3,-38,2,6,'#b7a16d')}
  if(style==='cook'){oval(c,0,-33,6,5,'#ede0c2');rect(c,-4,-20,7,13,'#c8bd9d')}
  if(style==='gardener'||style==='page'){oval(c,0,-31,5,4,style==='gardener'?'#a38b5d':'#854c3e');rect(c,-4,-31,8,2,'#ac9775')}
  if(style==='vizier'){rect(c,0,-23,4,3,'#6b6551');rect(c,1,-20,2,2,'#837b65')}
+ if(back&&!action){
+  poly(c,[[-4,-31],[4,-31],[4,-24],[1,-22],[-4,-24]],'#775d47');
+  rect(c,-5,-30,10,3,'#d6c8a7');rect(c,0,-25,4,3,'#604d40');
+  poly(c,[[-4,-22],[4,-22],[3,-18],[-4,-17]],color);
+ }
+ if(walk&&!action){const arm=Math.sin(t*9)*3;c.beginPath();c.moveTo(4,-20);c.lineTo(5+arm,-13+Math.abs(arm)*.45);c.strokeStyle=color;c.lineWidth=4;c.stroke();rect(c,4+arm,-14+Math.abs(arm)*.45,3,3,'#c9a078')}
+ paintGesture(c,action,t,color);
  if(style==='sultan'){rect(c,3,-36,2,6,'#9b7c46');rect(c,4,-37,2,4,'#d0ae67');rect(c,3,-32,2,2,'#943e32')}
  c.restore()
 }

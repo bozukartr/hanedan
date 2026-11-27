@@ -1,5 +1,5 @@
-import {addCity} from './city.js?v=7';
-import {premises} from './premises.js?v=7';
+import {addCity} from './city.js?v=8';
+import {premises} from './premises.js?v=8';
 export const WIDTH=800, HEIGHT=480;
 export const rooms={
  court:{name:'Divan Meydanı',type:'court',bounds:[8,164,1590,907],

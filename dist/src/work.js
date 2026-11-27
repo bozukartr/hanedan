@@ -1,5 +1,5 @@
-import {worldPoint} from './geography.js?v=7';
-import {institutions} from './institutions.js?v=7';
+import {worldPoint} from './geography.js?v=8';
+import {institutions} from './institutions.js?v=8';
 // Each shift lists its inputs, outputs and duration in game minutes.
 export const trades = {
  porter: ['Gemiden zahire boşaltıyor', 15, {}, {grain:3}],
@@ -44,6 +44,9 @@ export function shift(n,minutes){
  return '';
 }
 export function workStatus(n,s){
+ if(n.duty==='courier')return 'Hükmün arzını taşıyor';
+ if(n.reaction)return n.reaction.steps.length?'Padişaha yol veriyor':n.reaction.pose==='salute'?'Hünkârı selamlıyor':n.reaction.pose==='present'?'Arz sunuyor':'Hünkârın huzurunda eğiliyor';
+ if(n.duty==='escort')return n.moving?'Maiyette safına geçiyor':'Hünkârın maiyetinde';
  if(n.duty==='construction')return n.goal&&Math.hypot(n.x-n.goal[0],n.y-n.goal[1])<5?'Şantiyede çalışıyor':'Şantiyeye gidiyor';
  if(n.duty==='supervise')return 'Verilen hükmün icrasını yönetiyor';
  if(n.duty==='mandate')return 'Padişahın hükmünü yürütüyor';

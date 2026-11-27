@@ -1,5 +1,5 @@
-import {coffeeOpen} from './city.js?v=7';
-import {walkable} from './navigation.js?v=7';
+import {coffeeOpen} from './city.js?v=8';
+import {walkable} from './navigation.js?v=8';
 
 const workplaces={
  divan:'council',hazine:'council',vakif:'guild',posta:'lodge',kapi:'barracks',ocak:'barracks',

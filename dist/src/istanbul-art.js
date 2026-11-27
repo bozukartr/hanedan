@@ -1,17 +1,23 @@
-import {rect,poly,oval,star} from './art.js?v=7';
+import {rect,poly,oval,star} from './art.js?v=8';
 export function house(c,h){
  const {x,y,w,h:height,kind}=h,roof=y-height;
+ const roofColor=kind==='bogaz'||kind==='oldYali'?'#5e726b':kind==='galata'?'#7e5342':'#945b43';
  poly(c,[[x-2,y-10],[x+w,y-10],[x+w+22,y+10],[x+16,y+12]],'#414e3840');
- rect(c,x,y-height,w,height,'#ceb994');rect(c,x+5,roof+7,w-10,height-9,kind==='stable'?'#b49368':'#e0cba4');
+ rect(c,x,y-height,w,height,'#ceb994');rect(c,x+5,roof+7,w-10,height-9,kind==='stable'?'#b49368':kind==='galata'?'#baab96':kind==='uskudar'?'#d3bf95':'#e0cba4');
  for(let i=3;i<w;i+=20){rect(c,x+i,roof+3,3,height-3,'#80674b')}
  for(let i=0;i<3;i++)rect(c,x,roof+i*height/3,w,2,'#9d8059');
  for(let i=12;i<w-13;i+=26){
   rect(c,x+i,roof+12,12,16,'#836e50');rect(c,x+i+2,roof+14,8,12,'#4f6358');rect(c,x+i+6,roof+14,1,12,'#c4ae85');rect(c,x+i+2,roof+20,8,1,'#c4ae85');
  }
  rect(c,x+w*.37,y-25,w*.25,25,kind==='stable'?'#534c38':'#806247');rect(c,x+w*.47,y-24,2,24,'#a7895f');
- poly(c,[[x-8,roof+1],[x+11,roof-21],[x+w-4,roof-21],[x+w+9,roof+1]],'#945b43');
- for(let row=0;row<4;row++){const dx=8-row*4;for(let i=0;i<w+row*4;i+=7){rect(c,x+dx+i,roof-19+row*5,5,2,i%3?'#bc7d53':'#a96c4a')}}
+ poly(c,[[x-8,roof+1],[x+11,roof-21],[x+w-4,roof-21],[x+w+9,roof+1]],roofColor);
+ for(let row=0;row<4;row++){const dx=8-row*4;for(let i=0;i<w+row*4;i+=7){rect(c,x+dx+i,roof-19+row*5,5,2,roofColor==='#5e726b'?(i%3?'#84958a':'#70847b'):i%3?'#bc7d53':'#a96c4a')}}
  rect(c,x-7,roof+1,w+16,4,'#775a40');rect(c,x+4,y-2,w-8,3,'#9f916e');
+ if(['oldYali','yalıLand','uskudar'].includes(kind)){
+  const bx=x+w*.17,bw=w*.66;rect(c,bx-3,roof+4,bw+6,20,'#795c49');rect(c,bx,roof+5,bw,17,'#cdbb97');
+  for(let i=4;i<bw-7;i+=11){rect(c,bx+i,roof+7,7,12,'#425c5b');rect(c,bx+i+3,roof+7,1,12,'#babea3')}
+  poly(c,[[bx-7,roof+4],[bx+3,roof-3],[bx+bw-2,roof-3],[bx+bw+7,roof+4]],roofColor);
+ }
 }
 export function stand(c,s){
  const {x,y,w,color,kind}=s;

@@ -25,10 +25,17 @@ export const coffeeOpen=minutes=>minutes>=(Date.UTC(1554,0,1)-Date.UTC(1520,8,30
 function interior(name,interior){
  return {name,type:'inside',interior,bounds:[38,155,762,443],beds:[[85,204,145,25],[560,204,145,25],[322,284,150,27]]};
 }
+// Street frontages follow the bazaar, the tower slope, the landing and the shore.
+const frontages={
+ tahtakale:[[64,292],[158,278],[262,260],[362,252],[485,237],[571,235],[751,220],[857,214],[1074,270],[1166,288],[1280,307],[1340,520],[1195,547],[1083,530],[506,559],[408,540],[317,526],[174,525]],
+ galata:[[74,272],[161,238],[255,207],[408,152],[520,169],[623,204],[725,250],[824,300],[939,337],[1037,368],[1150,375],[1218,496],[1060,540],[890,523],[708,515],[592,494],[332,472]],
+ uskudar:[[320,270],[444,211],[597,182],[752,154],[947,187],[1095,210],[1210,255],[1100,512],[990,539],[815,531],[680,504],[514,544],[355,569],[205,525],[113,480]],
+ bogaz:[[250,338],[475,415],[652,303],[823,388],[1002,300],[1120,398],[1290,276],[1370,352],[1482,419],[1540,695],[1350,590],[1164,572]]
+};
 export function addCity(rooms){
  for(const [key,q] of Object.entries(quarters)){
   const palace=key==='enderun';
-  const blocks=palace||key==='strait'?[]:[[78,282],[265,255],[555,250],[775,263],[1080,258],[1220,320],[84,551],[750,527]];
+  const blocks=frontages[key]??[];
   rooms[key]={...q,blocks,type:'city',bounds:[18,145,q.width-18,palace?q.height-16:638],beds:blocks.map(([x,y])=>[x,y-30,86,30])};
  }
  for(let i=0;i<10;i++)rooms.tahtakale.beds.push([180+100*i,383+(i%3)*18,46,9]);

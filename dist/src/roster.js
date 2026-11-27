@@ -1,6 +1,6 @@
-import {itinerary,handoff} from './daylife.js?v=7';
-import {institutions} from './institutions.js?v=7';
-import {cast as founders} from './data.js?v=7';
+import {itinerary,handoff} from './daylife.js?v=8';
+import {institutions} from './institutions.js?v=8';
+import {cast as founders} from './data.js?v=8';
 
 const names='Ahmed Hasan Hüseyin İbrahim Mustafa Yusuf Yakub İshak Selim Mahmud Musa Davud Fatma Emine Ayşe Hatice Zeynep Meryem Ali Ömer Hamza Halil İlyas Osman'.split(' ');
 const origins='Edirneli Bursalı Üsküdarlı İznikli Tireli Amasyalı Bolulu Konyalı Tokatlı Sofyalı Gelibolulu Sinoplu'.split(' ');

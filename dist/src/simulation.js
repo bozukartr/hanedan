@@ -1,17 +1,19 @@
-import {parcels} from './city.js?v=7';
-import {tickEstate,constructionPost} from './estate.js?v=7';
-import {worldPoint,canStand,locationAt,water,settle} from './geography.js?v=7';
-import {worldRoute,mapRevision,clear} from './world-route.js?v=7';
-import {routineSite,period,jobTravel} from './daylife.js?v=7';
-import {newStores,occupation,shift,workshop} from './work.js?v=7';
-import {treasuryOffice,tickOrders} from './council.js?v=7';
-import {people as cast,personnel} from './roster.js?v=7';
-import {rooms,orders} from './data.js?v=7';
-import {travel} from './navigation.js?v=7';
-import {initialLife, targets, moveSpeed, updateNeeds, dismount} from './life.js?v=7';
+import {manageTraffic} from './foot-traffic.js?v=8';
+import {household,attendants,encounter,followFormation,carryReport,dispatchReports} from './protocol.js?v=8';
+import {parcels} from './city.js?v=8';
+import {tickEstate,constructionPost} from './estate.js?v=8';
+import {worldPoint,canStand,locationAt,water,settle} from './geography.js?v=8';
+import {worldRoute,mapRevision,clear} from './world-route.js?v=8';
+import {routineSite,period,jobTravel} from './daylife.js?v=8';
+import {newStores,occupation,shift,workshop} from './work.js?v=8';
+import {treasuryOffice,tickOrders} from './council.js?v=8';
+import {people as cast,personnel} from './roster.js?v=8';
+import {rooms,orders} from './data.js?v=8';
+import {travel} from './navigation.js?v=8';
+import {initialLife, targets, moveSpeed, updateNeeds, dismount} from './life.js?v=8';
 const SAVE='hanedan.saray.v1';
 export function fresh(){
- return {version:2,estate:{},priority:{},stores:newStores(),office:treasuryOffice(),life:initialLife(),minutes:480,player:{room:'court',x:391,y:220,face:1},gold:12400,esteem:72,peace:81,
+ return {version:2,household:household(),estate:{},priority:{},stores:newStores(),office:treasuryOffice(),life:initialLife(),minutes:480,player:{room:'court',x:391,y:220,face:1},gold:12400,esteem:72,peace:81,
  events:[{time:480,text:'Sultan Süleyman Divan Meydanı’na çıktı.'}],issued:{},lastGrant:-1,
  npcs:cast.map((d,i)=>{
   // Open the day with staggered commutes; inventories remain untouched until pickup.
@@ -46,13 +48,13 @@ export function restore(raw){
  if(!settle(v.player,v))return initial;
  for(const k of ['gold','esteem','peace','minutes'])if(!Number.isFinite(v[k])||v[k]<0)return initial;
  if(!Array.isArray(v.npcs)||!Array.isArray(v.events)||!v.issued)return initial;
- return {...initial,...v,stores:{...initial.stores,...v.stores},life:{...initial.life,...v.life,cargo:false,horse:{...initial.life.horse,...v.life?.horse}},events:v.events.filter(e=>typeof e.text==='string'&&Number.isFinite(e.time)).slice(-100),npcs:initial.npcs.map(n=>{
+ return {...initial,...v,household:{...household(),...v.household},stores:{...initial.stores,...v.stores},life:{...initial.life,...v.life,cargo:false,horse:{...initial.life.horse,...v.life?.horse}},events:v.events.filter(e=>typeof e.text==='string'&&Number.isFinite(e.time)).slice(-100),npcs:initial.npcs.map(n=>{
  const a=v.npcs.find(x=>x.id===n.id);
  return a&&rooms[a.room]&&Number.isFinite(a.x+a.y)&&settle(a,v)?{...n,...a,path:[],wait:0}:n})};
  }catch{return initial}
 }
 export class Palace {
- constructor(state=fresh()){this.s=state;this.pending=[];this.routes=new Map();this.revision=mapRevision(state);this.systems=new Map();this.motion=[];this.target=null}
+ constructor(state=fresh()){this.s=state;this.retinue=attendants(state);this.trafficAt=0;this.routes=new Map();this.revision=mapRevision(state);this.systems=new Map();this.motion=[];this.target=null}
  register(name,system){if(this.systems.has(name))throw Error('Sistem zaten kayıtlı');this.systems.set(name,system)}
  emit(type,payload){for(const sys of this.systems.values())sys.event?.(type,payload,this)}
  log(text){this.s.events.push({time:this.s.minutes,text});this.s.events=this.s.events.slice(-100);this.emit('record',text)}
@@ -66,8 +68,8 @@ export class Palace {
  for(const [who,room,x,y] of tasks[id])this.assign(this.s.npcs.find(a=>a.id===who),id,room,[x,y],this.s.issued[id]);
  this.log('Ferman mühürlendi: '+d.name+'.');this.emit('decree',id);return true;
  }
- assign(n,duty,room,goal,until){Object.assign(n,{duty,goalRoom:room,goal:worldPoint(room,...goal),until,path:[],wait:0,point:0})}
- escort(n){if(['mandate','supervise','construction'].includes(n.duty))return; if(n.duty==='escort'){this.routine(n);this.log(n.id==='guard'?'Muhafız nöbetine döndü.':'Refakat sona erdi.');return}
+ assign(n,duty,room,goal,until){delete n.reaction;delete n.yieldUntil;Object.assign(n,{duty,goalRoom:room,goal:worldPoint(room,...goal),until,path:[],wait:0,point:0})}
+ escort(n){if(['mandate','supervise','construction','courier'].includes(n.duty))return; if(n.duty==='escort'){this.routine(n);this.log(n.id==='guard'?'Muhafız nöbetine döndü.':'Refakat sona erdi.');return}
  this.assign(n,'escort',n.room,[400,330],Number.MAX_SAFE_INTEGER);n.goal=[this.s.player.x,this.s.player.y];this.log(this.note(n).name+' maiyete katıldı.')}
  routine(n){const d=this.note(n);n.work.status='İş yerine dönüyor';this.assign(n,'routine',d.home,d.start,0)}
  moveTo(x,y,target=null){
@@ -92,6 +94,8 @@ export class Palace {
  p.room=locationAt(p.x,p.y,s);
  if(s.life.mounted&&water(p.x,p.y))dismount(this,lastDry);
  updateNeeds(s,dt,run);
+ if(s.minutes>=this.trafficAt){manageTraffic(s);this.trafficAt=s.minutes+.45}
+ this.retinue=attendants(s);dispatchReports(this);
  for(const n of s.npcs){this.tickNPC(n,dt);if(n.moving)n.room=locationAt(n.x,n.y,s)}
  tickOrders(this);tickEstate(this,dt);
  const revision=mapRevision(s);if(this.revision!==revision){this.revision=revision;this.routes.clear();this.motion=[];this.target=null;for(const n of s.npcs){n.path=[];settle(n,s)}settle(p,s);settle(s.life.horse,s)}
@@ -101,14 +105,17 @@ export class Palace {
  tickNPC(n,dt){
  const p=this.s.player,d=this.note(n);n.moving=false;
  if(n.duty!=='routine'&&n.duty!=='escort'&&n.until<=this.s.minutes)this.routine(n);
- if(n.duty==='escort'){n.goalRoom=p.room;n.goal=[p.x,p.y];if(Math.hypot(n.x-p.x,n.y-p.y)<25){n.path=[];return}}
+ if(n.yieldUntil>this.s.minutes)return;
+ if(n.duty==='courier'){carryReport(this,n,dt);return}
+ if(n.duty==='escort'){followFormation(this,n,dt);return}
  if(n.duty==='routine'){
+  if(encounter(this,n,d,dt))return;
   if(d.plan){this.tickTrade(n,d,dt);return}
   const leisure=period(d.socialPlan,this.s.minutes);
   if(leisure==='visit'||leisure==='leave'){this.tickTrade(n,d,dt);return}
   if(n.work.period){delete n.work.period;n.path=[];n.wait=0}
  }
- if(n.path.length){travel(n,dt,n.duty==='escort'?100:48);return}
+ if(n.path.length){travel(n,dt,48);return}
  n.wait-=dt;if(n.wait>0)return;
  const hour=Math.floor(this.s.minutes/60)%24;
  const room=n.duty==='routine'?(hour>=19||hour<6?(['lala','guard','scribe'].includes(n.id)?'council':d.home):d.home):n.goalRoom;
@@ -128,7 +135,6 @@ export class Palace {
  }
  if(n.duty==='routine'){goal=worldPoint(room,...(room===d.home?d.start:[250+d.start[0]%300,345]));if(Math.hypot(n.x-goal[0],n.y-goal[1])<3)return}
  else if(n.duty==='watch'){goal=worldPoint('court',...[[230,185],[559,184],[575,405],[220,400]][n.point++%4]);n.wait=1}
- else if(n.duty==='escort'){if(Math.hypot(n.x-p.x,n.y-p.y)>28)goal=[p.x,p.y];n.wait=.25}
  else n.wait=3;
  if(goal)n.path=this.route(n,...goal);
  }

@@ -1,5 +1,5 @@
-import {worldPoint} from './geography.js?v=7';
-import {parcels} from './city.js?v=7';
+import {worldPoint} from './geography.js?v=8';
+import {parcels} from './city.js?v=8';
 export function constructionPost(id,i){
  const p=parcels[id];return [p.x-18+36*i,p.y+12];
 }

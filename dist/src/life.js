@@ -1,6 +1,6 @@
-import {worldPoint,water,locationAt} from './geography.js?v=7';
-import {citySpots} from './city.js?v=7';
-import {places} from './district.js?v=7';
+import {worldPoint,water,locationAt} from './geography.js?v=8';
+import {citySpots} from './city.js?v=8';
+import {places} from './district.js?v=8';
 
 export function initialLife(){
  return {stamina:90,thirst:75,bread:1,water:1,cargo:false,deliveries:0,
