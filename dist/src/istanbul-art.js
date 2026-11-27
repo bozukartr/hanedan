@@ -1,5 +1,5 @@
-import {rect,poly,oval,seed,tree,star} from './art.js?v=4';
-import {houses,stalls} from './district.js?v=4';
+import {rect,poly,oval,seed,tree,star} from './art.js?v=6';
+import {houses,stalls} from './district.js?v=6';
 
 function road(c,points,size,color){
  c.strokeStyle=color;c.lineWidth=size;c.lineCap='round';c.lineJoin='round';c.beginPath();
@@ -22,7 +22,7 @@ export function landscape(c){
  for(let y=805;y<=895;y+=24){rect(c,1357,y,5,7,'#665539');rect(c,1449,y,5,7,'#665539')}
  for(const [x,y] of [[1309,853],[1510,840],[550,846]]){poly(c,[[x-43,y],[x-30,y+14],[x+27,y+15],[x+48,y-2],[x+24,y+4],[x-29,y+3]],'#664b34');rect(c,x,y-39,2,46,'#705d43');poly(c,[[x-1,y-37],[x-1,y-4],[x-28,y-6]],'#e2ceb0')}
 }
-function house(c,h){
+export function house(c,h){
  const {x,y,w,h:height,kind}=h,roof=y-height;
  poly(c,[[x-2,y-10],[x+w,y-10],[x+w+22,y+10],[x+16,y+12]],'#414e3840');
  rect(c,x,y-height,w,height,'#ceb994');rect(c,x+5,roof+7,w-10,height-9,kind==='stable'?'#b49368':'#e0cba4');
