@@ -1,4 +1,5 @@
-import {institutions} from './institutions.js?v=6';
+import {worldPoint} from './geography.js?v=7';
+import {institutions} from './institutions.js?v=7';
 // Each shift lists its inputs, outputs and duration in game minutes.
 export const trades = {
  porter: ['Gemiden zahire boşaltıyor', 15, {}, {grain:3}],
@@ -43,14 +44,14 @@ export function shift(n,minutes){
  return '';
 }
 export function workStatus(n,s){
- if(n.duty==='construction')return n.room===n.goalRoom&&!n.moving?'Şantiyede çalışıyor':'Şantiyeye gidiyor';
+ if(n.duty==='construction')return n.goal&&Math.hypot(n.x-n.goal[0],n.y-n.goal[1])<5?'Şantiyede çalışıyor':'Şantiyeye gidiyor';
  if(n.duty==='supervise')return 'Verilen hükmün icrasını yönetiyor';
  if(n.duty==='mandate')return 'Padişahın hükmünü yürütüyor';
  if(n.duty!=='routine')return 'Saray hizmetinde';
  return n.work.period?n.work.status:shift(n,s.minutes)||n.work.status;
 }
 export function occupation(n,d,s,dt){
- const spec=trades[n.id],w=n.work,station=d.routes[w.cycles%d.routes.length];
+ const spec=trades[n.id],w=n.work,station=worldPoint(d.home,...d.routes[w.cycles%d.routes.length]);
  if(Math.hypot(n.x-station[0],n.y-station[1])>3){
   w.status='İş yerine gidiyor';return station;
  }

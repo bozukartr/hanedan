@@ -1,17 +1,17 @@
-import {seaChart,destinations} from './atlas.js?v=6';
-import {commission} from './estate.js?v=6';
-import {parcels,openExit,coffeeOpen} from './city.js?v=6';
-import {movementStick} from './touch.js?v=6';
-import {departments,personnel} from './roster.js?v=6';
-import {goods,trades,workStatus} from './work.js?v=6';
-import {districts,mandates,officers,eligible,issue,revoke,summary} from './council.js?v=6';
-import {rooms,nextExit,orders,clockText,dateText,WIDTH,HEIGHT} from './data.js?v=6';
-import {Palace} from './simulation.js?v=6';
-import {Renderer} from './render.js?v=6';
-import {targets,usePlace,dismount,consume} from './life.js?v=6';
-import {districtName,outerWidth,outerHeight} from './district.js?v=6';
-import {chart} from './cartography.js?v=6';
-import {icons} from './icons.js?v=6';
+import {worldPoint,landmark,buildingAt,isOpen,locationAt} from './geography.js?v=7';
+import {commission} from './estate.js?v=7';
+import {parcels} from './city.js?v=7';
+import {movementStick} from './touch.js?v=7';
+import {departments,personnel} from './roster.js?v=7';
+import {goods,trades,workStatus} from './work.js?v=7';
+import {districts,mandates,officers,eligible,issue,revoke,summary} from './council.js?v=7';
+import {rooms,clockText,dateText} from './data.js?v=7';
+import {Palace} from './simulation.js?v=7';
+import {Renderer} from './render.js?v=7';
+import {targets,usePlace,dismount,consume} from './life.js?v=7';
+import {districtName} from './district.js?v=7';
+import {chart,overview} from './cartography.js?v=7';
+import {icons} from './icons.js?v=7';
 const $=id=>document.getElementById(id),world=$('world'),dialog=$('dialog'),body=$('modalbody');
 let storage;try{storage=window.localStorage}catch{}
 const game=Palace.load(storage),s=game.s,renderer=new Renderer(world),keys=new Set();
@@ -106,30 +106,10 @@ function decrees(type='provision',zone='kitchen',officer='porter',amount=1){
  button('Divanı topla','Sadrazam, kapıcıbaşı ve kâtip Kubbealtı’na gelir.',()=>{game.order('council');close()},game.active('council')||s.office.jobs.some(j=>['vizier','lala','scribe'].includes(j.officer)));
 }
 function codex(){modal('log','SARAY DEFTERİ','Vekayinâme');for(const a of s.events.slice().reverse()){const row=el('div','');row.className='entry';row.append(el('time',dateText(a.time)+' · '+clockText(a.time)),el('span',a.text));body.append(row)}}
-function navigateTo(x,y,target){if(!game.moveTo(x,y,target)){toast('Buraya yürünecek açık bir yol yok.');return false}return true}
-function journey(to,parcel){
- const here=s.player.room;
- if(here===to){
-  if(parcel==='alay'){navigateTo(403,609);return}
-  if(parcel){const lot=parcels[parcel];navigateTo(lot.x+24,lot.y+12,{kind:'estate',id:parcel})}
-  else toast(rooms[to].name+' bölgesindesin.');
-  return;
- }
- const exit=nextExit(here,to);
- if(!exit||!openExit(s,exit)){toast('Bu geçit henüz açık değil.');return}
- navigateTo(exit.x,exit.y,{kind:'journey',exit,to,parcel});toast(exit.label+' yönünde ilerliyorsun.');
-}
-function guide(to,parcel){close();journey(to,parcel)}
-function cityAtlas(){
- modal('map','İSTANBUL · SEYİR HARİTASI','Şehir ve Boğaz');
- const map=el('canvas','');map.className='atlas';map.setAttribute('aria-label','İstanbul semtleri ve Boğaz geçişleri');
- body.append(map);seaChart(map,s.player.room,to=>guide(to));
- body.append(el('p','Semti seçince kapı ve iskelelerden geçen yol izlenir. Yön vererek rotadan ayrılabilirsin.'));
- button('Yerel plan','Bulunduğun bölgeye dön',atlas);
- button('Alay Meydanı','Bâb-ı Hümâyun’dan Bâbüsselâm’a uzanan yol',()=>guide('court','alay'));
- button('Emlak ve imar','Evler, yalılar ve inşaata açık arsalar',estates);
- for(const [to,name] of destinations)button(name,to===s.player.room?'Buradasın':'Buraya git',()=>guide(to),to===s.player.room);
- if(coffeeOpen(s.minutes))button('Tahtakale Kahvehanesi','Buraya git',()=>guide('kahve'));
+function navigateTo(x,y,target){if(!game.moveTo(x,y,target)){toast('Bu nokta kapalı. Yakınında açık bir yer seç.');return false}return true}
+function guide(id,parcel){
+ const p=parcels[parcel],where=p?worldPoint(p.room,p.x+24,p.y+12):landmark(id);
+ if(navigateTo(...where,p?{kind:'estate',id:parcel}:null)){game.pin={x:where[0],y:where[1]};close()}
 }
 function estates(){
  modal('estate','MÜLK DEFTERİ','Emlak ve imar');
@@ -149,20 +129,24 @@ function estate(id){
  button('Mülk defterine dön','',estates);
 }
 function atlas(){
- modal('map','İSTANBUL · 1520','Saray ve çevresi');
- button('İstanbul haritası','Semtler, iskeleler ve seyahat',cityAtlas);
- button('Emlak ve imar','Satın alma ve yapı emirleri',estates);
- const map=el('canvas','');map.className='atlas';map.width=600;map.height=345;map.setAttribute('aria-label','İstanbul haritası, yol işaretlemek için dokun.');
- body.append(map);const exterior=s.player.room==='court';
- const w=rooms[s.player.room].width??(exterior?outerWidth:WIDTH),h=rooms[s.player.room].height??(exterior?outerHeight:HEIGHT),scale=Math.min(map.width/w,map.height/h);
- const draw=()=>chart(map.getContext('2d'),game,w/2,h/2,scale);draw();
- map.onclick=e=>{const box=map.getBoundingClientRect();const x=Math.round(w/2+((e.clientX-box.left)/box.width-.5)*map.width/scale);
- const y=Math.round(h/2+((e.clientY-box.top)/box.height-.5)*map.height/scale);pin(x,y)};
- function pin(x,y){game.pin={room:s.player.room,x,y};draw();note.textContent='İşaret kondu. Radar üzerinde kırmızı halka ile gösterilir.'}
- const note=el('p','Haritaya dokunarak yol işareti koy.');note.className='mapnote';body.append(note);
- if(exterior){for(const a of [[972,395,'Esnaf Çarşısı'],[1430,750,'İskele ambarı'],[400,310,'Divan Meydanı']]){
- button(a[2],'Yol işareti koy',()=>{pin(a[0],a[1]);close();toast(a[2]+' işaretlendi.')})}}
- for(const e of rooms[s.player.room].exits.filter(e=>openExit(s,e)))button(e.label,'Geçide yürü',()=>guide(e.to))
+ modal('map','İSTANBUL','Şehir haritası');
+ const map=el('canvas','');map.className='atlas';map.setAttribute('aria-label','İstanbul haritası üzerinde hedef seç');body.append(map);
+ const {draw,pick}=overview(map,game);
+ const note=el('p','Haritada bir yere dokun veya listeden bir hedef seç.');body.append(note);
+ const select=el('select','');select.setAttribute('aria-label','Harita hedefi');
+ const empty=el('option','Hedef seç…');empty.value='';select.append(empty);
+ for(const [id,r] of Object.entries(rooms)){
+  const option=el('option',r.name);option.value=id;option.disabled=!isOpen(id,s);select.append(option);
+ }
+ body.append(select);
+ const go=button('Buraya git','Yön vererek rotadan ayrılabilirsin.',()=>{
+  if(game.pin&&navigateTo(game.pin.x,game.pin.y))close();
+ },!game.pin);
+ function mark(x,y,name){game.pin={x,y};draw();go.disabled=false;note.textContent='Hedef · '+name}
+ map.onclick=e=>{const [x,y]=pick(e);select.value='';mark(x,y,rooms[locationAt(x,y,s)].name)};
+ select.onchange=()=>{if(select.value)mark(...landmark(select.value),rooms[select.value].name)};
+ if(game.pin)note.textContent='Hedef · '+rooms[locationAt(game.pin.x,game.pin.y,s)].name;
+ button('Emlak ve imar','Evler, yalılar ve arsalar',estates);
 }
 function bag(){
  modal('bag','SULTAN SÜLEYMAN','Heybe');
@@ -186,7 +170,7 @@ function menu(){
  button('Ses · '+(s.sound?'Açık':'Kapalı'),'',toggleSound);button('Kontroller','',help)
 }
 function help(){modal('help','OYUN KONTROLLERİ','Sarayda dolaş');
- for(const a of ['WASD veya yön tuşlarıyla yürü. Shift ile koş. Dokunmatik ekranda çubuğu sürükleyerek yürü, kenarına çekerek koş. Zemine dokunarak da yürüyebilirsin.','E ile yakındaki kişi, at, geçit veya tezgâhla etkileş. R ile attan in.','F hüküm, T teşkilat, I heybe, M harita, J vekayinâme. Oyun alanında Tab hızlı menüyü açar.','Doğuda çarşı, güneydoğuda iskele var. Haritada bu yerleri işaretleyebilirsin.','Boşluk veya Esc oyunu duraklatır.'])body.append(el('p',a))}
+ for(const a of ['WASD veya yön tuşlarıyla yürü. Shift ile koş. Dokunmatik ekranda çubuğu sürükleyerek yürü, kenarına çekerek koş. Zemine dokunarak da yürüyebilirsin.','Açık kapılardan yürüyerek gir. E ile yakındaki kişi, at veya tezgâhla etkileş. R ile attan in.','F hüküm, T teşkilat, I heybe, M harita, J vekayinâme. Oyun alanında Tab hızlı menüyü açar.','Doğuda çarşı, güneydoğuda iskele var. Haritada bu yerleri işaretleyebilirsin.','Boşluk veya Esc oyunu duraklatır.'])body.append(el('p',a))}
 function talk(n){
  const d=game.note(n);modal('talk',d.role.toLocaleUpperCase('tr'),d.name);
  const tasks={escort:'Emriniz üzere yanınızdayım, hünkârım.',meal:'İmaret sofrasını meydana kuruyorum, hünkârım.',watch:'Kapılarda devriyedeyim, hünkârım.',plant:'Gül tarhlarının bakımındayım, hünkârım.',council:'Divan için Kubbealtı’nda toplanıyoruz, hünkârım.'};
@@ -197,10 +181,9 @@ function talk(n){
  button(n.duty==='escort'?'Görevine gönder':'Maiyete al',n.duty==='escort'?'Günlük işine döner.':'Sarayda sana refakat eder.',()=>{game.escort(n);close()},['mandate','supervise','construction'].includes(n.duty));
  button('İhsanda bulun','40 akçe · İtibar +1 · Günde bir kez',()=>{s.gold-=40;s.esteem=Math.min(100,s.esteem+1);s.lastGrant=Math.floor(s.minutes/1440);game.log(d.name+' için 40 akçe ihsan buyuruldu.');close()},s.gold<40||s.lastGrant===Math.floor(s.minutes/1440))
 }
-function perform(obj){if(obj?.kind==='npc')talk(obj.item);else if(obj?.kind==='exit')game.enter(obj.item);else if(obj?.kind==='estate')estate(obj.id);else if(obj?.kind==='journey'){
- if(game.enter(obj.exit))journey(obj.to,obj.parcel);
- }else if(obj?.kind==='place'){if(obj.item.id==='gather'){gather();return}if(obj.item.id.startsWith('estate-')){estate(obj.item.id.slice(7));return}if(['sack','oven'].includes(obj.item.id)){decrees(obj.item.id==='sack'?'provision':'relief','kitchen',obj.item.id==='sack'?'porter':'cook');return}const result=usePlace(game,obj.item.id);if(result)toast(result)}
- else toast('Konuşmak için bir görevliye, geçmek için bir kapıya yaklaş.')}
+function perform(obj){if(obj?.kind==='npc')talk(obj.item);else if(obj?.kind==='estate')estate(obj.id);
+ else if(obj?.kind==='place'){if(obj.item.id==='gather'){gather();return}if(obj.item.id.startsWith('estate-')){estate(obj.item.id.slice(7));return}if(['sack','oven'].includes(obj.item.id)){decrees(obj.item.id==='sack'?'provision':'relief','kitchen',obj.item.id==='sack'?'porter':'cook');return}const result=usePlace(game,obj.item.id);if(result)toast(result)}
+ else toast('Yakındaki bir görevliye veya tezgâha yaklaş.')}
 function gather(){
  const p=s.player;modal('gather','ŞEHİR HAYATI',p.room==='tahtakale'?'Şerbetçi tezgâhı':rooms[p.room].name);
  const near=s.npcs.filter(n=>n.room===p.room&&Math.hypot(n.x-p.x,n.y-p.y)<250).slice(0,8);
@@ -210,7 +193,6 @@ function gather(){
 }
 function act(){perform(game.nearby())}
 function walkToNPC(n){
- if(n.room!==s.player.room){atlas();return}
  if(Math.hypot(n.x-s.player.x,n.y-s.player.y)<=34){talk(n);return}
  navigateTo(n.x,n.y,{kind:'npc',item:n})
 }
@@ -232,9 +214,7 @@ world.addEventListener('pointerdown',e=>{world.focus({preventScroll:true});
  const [x,y]=renderer.project(e.clientX,e.clientY);
  const obj=targets(s).find(a=>Math.abs(a.x-x)<14&&y>=a.y-(a.id==='horse'?38:13)&&y<a.y+8);
  if(obj){const item={kind:'place',item:obj};if(Math.hypot(obj.x-s.player.x,obj.y-s.player.y)<34)perform(item);else navigateTo(obj.x,obj.y,item);return}
- const n=s.npcs.find(n=>n.room===s.player.room&&Math.abs(n.x-x)<11&&y>=n.y-36&&y<n.y+5);if(n){walkToNPC(n);return}
- const door=rooms[s.player.room].exits.filter(e=>openExit(s,e)).find(d=>Math.hypot(d.x-x,d.y-y)<26||(Math.abs(d.x-x)<21&&d.y-y>0&&d.y-y<61));
- if(door){if(Math.hypot(s.player.x-door.x,s.player.y-door.y)<34){perform({kind:'exit',item:door});return}navigateTo(door.x,door.y,{kind:'exit',item:door});return}
+ const n=s.npcs.find(n=>(!buildingAt(n.x,n.y,s)||n.room===s.player.room)&&Math.abs(n.x-x)<11&&y>=n.y-36&&y<n.y+5);if(n){walkToNPC(n);return}
  navigateTo(x,y)
 });
 window.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase();
@@ -248,7 +228,7 @@ function frame(now){
  const dt=Math.min(.25,Math.max(0,(now-last)/1000));last=now;
  if(!dialog.open&&!document.hidden){t+=dt;const on=(...input)=>input.some(k=>keys.has(k))?1:0;for(let remaining=dt;remaining>0;remaining-=.04)game.tick(Math.min(.04,remaining),on('d','arrowright')-on('a','arrowleft')+stick.x,on('s','arrowdown')-on('w','arrowup')+stick.y,keys.has('shift')||stick.run);
  if(game.target&&!game.motion.length){const target=game.target;game.target=null;
- if(target.kind==='npc'&&target.item.room===s.player.room){if(Math.hypot(target.item.x-s.player.x,target.item.y-s.player.y)<=34)talk(target.item);else walkToNPC(target.item)}
+ if(target.kind==='npc'){if(Math.hypot(target.item.x-s.player.x,target.item.y-s.player.y)<=34)talk(target.item);else walkToNPC(target.item)}
  else perform(target)}
  }
  renderer.render(game,t);if(now>uiTime){refresh();uiTime=now+230}if(now>msgUntil)$('message').style.display='none';if(now>saveTime){save();saveTime=now+5000}requestAnimationFrame(frame);

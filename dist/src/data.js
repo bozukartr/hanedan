@@ -1,37 +1,19 @@
-import {addCity} from './city.js?v=6';
-import {premises} from './premises.js?v=6';
+import {addCity} from './city.js?v=7';
+import {premises} from './premises.js?v=7';
 export const WIDTH=800, HEIGHT=480;
 export const rooms={
  court:{name:'Divan Meydanı',type:'court',bounds:[8,164,1590,907],
   beds:[[20,205,158,83],[619,205,160,83],[22,369,145,85],[635,369,142,85]],
-  fountain:[400,281,45,22],exits:[
-   {x:190,y:181,to:'council',arrive:[400,409],label:'Kubbealtı'},
-   {x:713,y:171,to:'kitchen',arrive:[400,407],label:'Matbah-ı Âmire'}]},
- council:{name:'Kubbealtı',type:'inside',bounds:[38,155,762,443],beds:[[110,210,60,33],[630,210,60,33],[316,225,168,49]],exits:[{x:400,y:428,to:'court',arrive:[190,194],label:'Divan Meydanı'}]},
- kitchen:{name:'Matbah-ı Âmire',type:'inside',bounds:[38,157,762,443],beds:[[75,185,155,39],[553,185,163,39],[322,272,150,45]],exits:[{x:400,y:428,to:'court',arrive:[713,193],label:'Divan Meydanı'}]},
- garden:{name:'Hasbahçe',type:'garden',bounds:[15,124,785,466],beds:[[38,158,235,94],[529,158,233,94],[38,331,235,104],[529,331,233,104]],fountain:[401,288,60,25],exits:[]}
+  fountain:[400,281,45,22]},
+ council:{name:'Kubbealtı',type:'inside',bounds:[38,155,762,443],beds:[[110,210,60,33],[630,210,60,33],[316,225,168,49]]},
+ kitchen:{name:'Matbah-ı Âmire',type:'inside',bounds:[38,157,762,443],beds:[[75,185,155,39],[553,185,163,39],[322,272,150,45]]},
+ garden:{name:'Hasbahçe',type:'garden',bounds:[15,124,785,466],beds:[[38,158,235,94],[529,158,233,94],[38,331,235,104],[529,331,233,104]],fountain:[401,288,60,25]}
 };
-for(const [key,name,x,y,interior] of premises){
+for(const [key,name,,,interior] of premises){
  rooms[key]={name,type:'inside',interior,bounds:[38,155,762,443],
-  beds:[[85,204,145,25],[560,204,145,25],[322,284,150,27]],
-  exits:[{x:400,y:428,to:'court',arrive:[x,y+12],label:'Sokağa çık'}]};
- rooms.court.exits.push({x,y,to:key,arrive:[400,406],label:name});
+  beds:[[85,204,145,25],[560,204,145,25],[322,284,150,27]]};
 }
 addCity(rooms);
-const routes=new Map();
-export function nextExit(from,to){
- if(from===to)return;
- const key=from+'|'+to;if(routes.has(key))return routes.get(key);
- const seen=new Set([from]),queue=[{room:from,first:null}];
- for(let i=0;i<queue.length;i++){
-  const {room,first}=queue[i];
-  for(const e of rooms[room].exits){
-   if(seen.has(e.to))continue;
-   if(e.to===to){routes.set(key,first||e);return first||e}
-   seen.add(e.to);queue.push({room:e.to,first:first||e});
-  }
- }
-}
 export const cast=[
  {id:'lala',name:'Mehmed Ağa',role:'Kapıcıbaşı',color:'#904739',home:'court',start:[475,319],line:'Bâb kapıları açık, hünkârım. Gelenleri önce meydanda karşılarız.',routes:[[474,318],[541,178],[410,426],[554,342]]},
  {id:'guard',name:'Hasan Çavuş',role:'Saray muhafızı',color:'#8d3433',home:'court',start:[290,215],line:'Gündüz nöbeti bende. Dilerseniz size refakat ederim.',routes:[[290,215],[222,340],[529,339],[546,209]]},
