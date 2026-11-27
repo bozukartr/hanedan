@@ -27,7 +27,7 @@ function census(){
  body.append(el('p','İskele ve çarşı · '+Object.entries(s.stores).map(([k,v])=>v+' '+goods[k]).join(' · ')));
  for(const n of s.npcs){
   const d=game.note(n),w=n.work,unit=Object.entries(trades[n.id][3]).map(([k,v])=>v+' '+goods[k]).join(', ');
-  body.append(el('strong',d.name+' · '+d.role),el('p',rooms[n.room].name+' · '+workStatus(n,s)+' · '+w.cycles+' iş tamamlandı. Her işte '+unit+'.'));
+  body.append(el('strong',d.name+' · '+d.role),el('p',(n.room==='court'?districtName(n.x,n.y):rooms[n.room].name)+' · '+workStatus(n,s)+' · '+w.cycles+' iş tamamlandı. Her işte '+unit+'.'));
  }
  button('Bir saat geçir','Herkes mesaisine devam eder.',()=>{advanceClock(60);census()});
 }

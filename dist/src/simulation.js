@@ -37,7 +37,7 @@ export class Palace {
  assign(n,duty,room,goal,until){Object.assign(n,{duty,goalRoom:room,goal,until,path:[],wait:0,point:0})}
  escort(n){if(n.duty==='mandate')return; if(n.duty==='escort'){this.routine(n);this.log(n.id==='guard'?'Muhafız nöbetine döndü.':'Refakat sona erdi.');return}
  this.assign(n,'escort',this.s.player.room,[this.s.player.x,this.s.player.y],Infinity);this.log(this.note(n).name+' maiyete katıldı.')}
- routine(n){const d=this.note(n);this.assign(n,'routine',d.home,d.start,0)}
+ routine(n){const d=this.note(n);n.work.status='İş yerine dönüyor';this.assign(n,'routine',d.home,d.start,0)}
  enter(exit){
  const p=this.s.player;if(!rooms[p.room].exits.includes(exit)||Math.hypot(exit.x-p.x,exit.y-p.y)>34)return false;
  if(this.s.life.mounted)dismount(this);
