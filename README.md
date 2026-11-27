@@ -54,6 +54,12 @@ Kamera oyuncuyu izler. Aynı dış haritada saraydan doğuya yürüyerek ahırla
 
 F ile hüküm defterinde bölge, miktar ve vekil seçilir. Zahire sevki iskele stokundan ayrılır. Hamal başka vazifedeyken iskeleye yeni mal girmez. Bölgeye ulaşan zahireyle aş dağıttırılabilir. Muhafız konuşlandırmak tahsilatın huzura maliyetini düşürür. Aynı anda birden çok vekile ayrı emirler verilebilir.
 
-Mesai defteri 11 kişinin yaptığı işi, tamamlanan işleri ve ortak stokları gösterir. Mesai, öğle molası ve istirahat oyun saatine bağlıdır. Her NPC kendi iş noktasına yürür. Gerekli malzeme eksikse bekler. Oyuncu başka bölgedeyken veya defterden zaman geçirirken aynı simülasyon çalışır. Tarayıcı kapalıyken oyun saati durur.
+Mesai defteri 281 kişinin görevini, amirini, tamamladığı işleri ve birim stoklarını gösterir. Mesai, öğle molası ve istirahat oyun saatine bağlıdır. Her NPC kendi iş noktasına yürür. Gerekli malzeme eksikse bekler. Oyuncu başka bölgedeyken veya defterden zaman geçirirken aynı simülasyon çalışır. Tarayıcı kapalıyken oyun saati durur.
 
 Meslek girdileri ve çıktıları `dist/src/work.js`, bölge hesapları ve emirlerin icrası `dist/src/council.js` içinde tanımlıdır.
+
+## Teşkilat
+
+Mevcut on bir karaktere otuz birimde dokuzar kadro eklenir. Sicil kimlikleri sabittir. Eski kayıtlardaki ilerleme korunur. İsimler, görev dağılımı ve yetki basamakları oynanış için kurgulanmıştır.
+
+Birim amirine uzmanlığına uygun bir hüküm verildiğinde müsait astlarından biri işi sahada yürütür. Her ikisi de sonuç alınana veya hüküm geri çekilene kadar meşguldür. F menüsündeki mesai defterinde birimin işlerine altı saat öncelik verilebilir. Atölyelerde kabul, işleme, denetim, onay ve teslim aşamaları ayrı stok tutar. Deri saraçlara, koşum ahıra, dokuma terzilere gider. Birimler, makamlar ve iş tarifleri `institutions.js`, siciller ve bağlılıklar `roster.js` içindedir.

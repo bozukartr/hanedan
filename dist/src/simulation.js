@@ -1,20 +1,21 @@
-import {newStores,occupation,shift} from './work.js?v=3';
-import {treasuryOffice,tickOrders} from './council.js?v=3';
-import {cast,rooms,orders} from './data.js?v=3';
-import {path,travel,walkable} from './navigation.js?v=3';
-import {initialLife, targets, moveSpeed, updateNeeds, dismount} from './life.js?v=3';
+import {newStores,occupation,shift} from './work.js?v=4';
+import {treasuryOffice,tickOrders} from './council.js?v=4';
+import {people as cast,personnel} from './roster.js?v=4';
+import {rooms,orders} from './data.js?v=4';
+import {path,travel,walkable} from './navigation.js?v=4';
+import {initialLife, targets, moveSpeed, updateNeeds, dismount} from './life.js?v=4';
 const SAVE='hanedan.saray.v1';
 export function fresh(){
- return {version:1,stores:newStores(),office:treasuryOffice(),life:initialLife(),minutes:480,player:{room:'court',x:391,y:220,face:1},gold:12400,esteem:72,peace:81,
+ return {version:1,priority:{},stores:newStores(),office:treasuryOffice(),life:initialLife(),minutes:480,player:{room:'court',x:391,y:220,face:1},gold:12400,esteem:72,peace:81,
  events:[{time:480,text:'Sultan Süleyman Divan Meydanı’na çıktı.'}],issued:{},lastGrant:-1,
- npcs:cast.map((d,i)=>({id:d.id,room:d.home,x:d.start[0],y:d.start[1],face:i%2?-1:1,work:{progress:0,cycles:0,last:null,status:'Mesaiye hazırlanıyor'},point:0,wait:3+i*2,path:[],duty:'routine',until:0})),sound:false};
+ npcs:cast.map((d,i)=>({id:d.id,room:d.home,x:d.start[0],y:d.start[1],face:i%2?-1:1,work:{progress:0,cycles:0,last:null,status:'Mesaiye hazırlanıyor'},point:0,wait:3+(i%11)*2,path:[],duty:'routine',until:0})),sound:false};
 }
 export function restore(raw){
  const initial=fresh();if(!raw)return initial;
  try{const v=JSON.parse(raw);if(v.version!==1||!v.player||!rooms[v.player.room]||!walkable(v.player.room,v.player.x,v.player.y)||!Number.isFinite(v.player.x+v.player.y))return initial;
  for(const k of ['gold','esteem','peace','minutes'])if(!Number.isFinite(v[k])||v[k]<0)return initial;
  if(!Array.isArray(v.npcs)||!Array.isArray(v.events)||!v.issued)return initial;
- return {...initial,...v,life:{...initial.life,...v.life,cargo:false,horse:{...initial.life.horse,...v.life?.horse}},events:v.events.filter(e=>typeof e.text==='string'&&Number.isFinite(e.time)).slice(-100),npcs:initial.npcs.map(n=>{
+ return {...initial,...v,stores:{...initial.stores,...v.stores},life:{...initial.life,...v.life,cargo:false,horse:{...initial.life.horse,...v.life?.horse}},events:v.events.filter(e=>typeof e.text==='string'&&Number.isFinite(e.time)).slice(-100),npcs:initial.npcs.map(n=>{
  const a=v.npcs.find(x=>x.id===n.id);
  return a&&rooms[a.room]&&Number.isFinite(a.x+a.y)&&walkable(a.room,a.x,a.y)?{...n,...a,path:[],wait:0}:n})};
  }catch{return initial}
@@ -24,7 +25,7 @@ export class Palace {
  register(name,system){if(this.systems.has(name))throw Error('Sistem zaten kayıtlı');this.systems.set(name,system)}
  emit(type,payload){for(const sys of this.systems.values())sys.event?.(type,payload,this)}
  log(text){this.s.events.push({time:this.s.minutes,text});this.s.events=this.s.events.slice(-100);this.emit('record',text)}
- note(n){return cast.find(d=>d.id===n.id)}
+ note(n){return personnel.get(n.id)}
  active(id){return (this.s.issued[id]??-1)>this.s.minutes}
  order(id){
  const d=orders.find(x=>x.id===id);if(!d||this.active(id)||d.cost>this.s.gold)return false;
@@ -35,7 +36,7 @@ export class Palace {
  this.log('Ferman mühürlendi: '+d.name+'.');this.emit('decree',id);return true;
  }
  assign(n,duty,room,goal,until){Object.assign(n,{duty,goalRoom:room,goal,until,path:[],wait:0,point:0})}
- escort(n){if(n.duty==='mandate')return; if(n.duty==='escort'){this.routine(n);this.log(n.id==='guard'?'Muhafız nöbetine döndü.':'Refakat sona erdi.');return}
+ escort(n){if(['mandate','supervise'].includes(n.duty))return; if(n.duty==='escort'){this.routine(n);this.log(n.id==='guard'?'Muhafız nöbetine döndü.':'Refakat sona erdi.');return}
  this.assign(n,'escort',this.s.player.room,[this.s.player.x,this.s.player.y],Infinity);this.log(this.note(n).name+' maiyete katıldı.')}
  routine(n){const d=this.note(n);n.work.status='İş yerine dönüyor';this.assign(n,'routine',d.home,d.start,0)}
  enter(exit){
