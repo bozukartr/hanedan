@@ -1,6 +1,6 @@
-import {bounds,buildings,gardens,cottages,walls,groves,monuments,isOpen,landmark} from './geography.js?v=7';
-import {baseMap} from './terrain.js?v=7';
-import {parcels} from './city.js?v=7';
+import {bounds,buildings,gardens,cottages,walls,groves,monuments,isOpen,landmark} from './geography.js?v=8';
+import {baseMap} from './terrain.js?v=8';
+import {parcels} from './city.js?v=8';
 export const chartNames=[['court','Topkapı Sarayı'],['tahtakale','Tahtakale'],['galata','Galata'],['bogaz','Boğaziçi'],['uskudar','Üsküdar'],['strait','Boğaz']];
 export function chart(c,game,cx,cy,scale,overview=false){
  const w=c.canvas.width,h=c.canvas.height,s=game.s;
@@ -14,7 +14,11 @@ export function chart(c,game,cx,cy,scale,overview=false){
   c.fillStyle=parcels[b.id]?.build&&!isOpen(b.id,s)?'#a5a170':b.parent==='court'||b.parent==='enderun'?'#806b54':'#976b51';
   c.fillRect(b.x,b.y,b.w,b.h);c.lineWidth=1/scale;c.strokeStyle='#d8c99e';c.strokeRect(b.x,b.y,b.w,b.h);
  }
- if(!overview){c.fillStyle='#4d614a';for(const n of s.npcs)if(Math.abs(n.x-cx)<w/(scale*2)&&Math.abs(n.y-cy)<h/(scale*2))c.fillRect(n.x-2,n.y-2,4,4)}
+ if(!overview)for(const n of s.npcs){
+  if(Math.abs(n.x-cx)>w/(scale*2)||Math.abs(n.y-cy)>h/(scale*2))continue;
+  const marked=['courier','escort'].includes(n.duty),size=marked?12:4;
+  c.fillStyle=n.duty==='courier'?'#9d3f2c':n.duty==='escort'?'#315b69':'#4d614a';c.fillRect(n.x-size/2,n.y-size/2,size,size);
+ }
  if(game.motion.length){
   c.strokeStyle='#8c583c';c.lineWidth=1.8/scale;c.setLineDash([4/scale,3/scale]);c.beginPath();c.moveTo(s.player.x,s.player.y);
   for(const [x,y] of game.motion)c.lineTo(x,y);c.stroke();c.setLineDash([]);

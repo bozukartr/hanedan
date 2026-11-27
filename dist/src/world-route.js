@@ -1,5 +1,5 @@
-import {bounds,canStand,buildingAt} from './geography.js?v=7';
-import {coffeeOpen} from './city.js?v=7';
+import {bounds,canStand,buildingAt} from './geography.js?v=8';
+import {coffeeOpen} from './city.js?v=8';
 
 const step=16,cols=Math.ceil((bounds[2]-bounds[0])/step)+1;
 const point=id=>[bounds[0]+(id%cols)*step,bounds[1]+Math.floor(id/cols)*step];

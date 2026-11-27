@@ -1,5 +1,6 @@
-import {worldPoint} from './geography.js?v=7';
-import {people,personnel} from './roster.js?v=7';
+import {queueReport} from './protocol.js?v=8';
+import {worldPoint} from './geography.js?v=8';
+import {people,personnel} from './roster.js?v=8';
 // District accounts and officers persist independently of the sultan's location.
 export const districts = {
   palace: {name:'Divan Meydanı', room:'court', x:500, y:350},
@@ -28,7 +29,7 @@ export function treasuryOffice(){
 export function summary(s,type,zone,amount,officer){
  const rules=mandates[type],a=s.office.accounts[zone];
  if(!rules||!a||!Number.isInteger(amount)||amount<1||amount>8||!eligible(officer,type))return 'Emrin kapsamını ve vekilini belirleyin.';
- if(s.office.jobs.some(j=>j.officer===officer))return 'Bu vekil başka bir emri yürütüyor.';
+ if(['mandate','supervise','construction','courier'].includes(s.npcs.find(n=>n.id===officer)?.duty)||s.office.jobs.some(j=>j.officer===officer))return 'Bu vekil başka bir emri yürütüyor.';
  if(personnel.get(officer).slot===8&&!aide(s,officer))return 'Bu birimin müsait icra görevlisi yok.';
  if(s.gold<rules.cost*amount)return 'Hazinedeki akçe bu tahsisat için yetersiz.';
  if(type==='provision'&&s.stores.grain<amount)return 'İskele ambarında yeterli zahire yok.';
@@ -93,6 +94,21 @@ export function tickOrders(game){
   }
   if(j.executor)game.routine(s.npcs.find(n=>n.id===j.officer));
   game.routine(n);s.office.jobs=s.office.jobs.filter(x=>x!==j);
-  game.log(game.note(n).name+' arz eder — '+site.name+': '+report)
+  queueReport(game,j,site,report,n);game.emit('dispatch',j.id)
+ }
+}
+
+// A suggestion is recalculated from actual district accounts and available officers.
+export function petition(s){
+ const kitchen=s.office.accounts.kitchen,market=s.office.accounts.market;
+ const requests=[
+  [kitchen.grain<=2,'provision','kitchen',2,'Mutfak kilerinde '+kitchen.grain+' çuval kaldı.','porter'],
+  [kitchen.grain>0&&kitchen.served<60,'relief','kitchen',1,'Aşçıbaşı, kilerden bir çuvalla 20 kişilik aş çıkarabilir.','cook'],
+  [market.peace<80&&market.guards<4,'guard','market',1,'Çarşıda huzur '+market.peace+'/100. Çarşı emini nöbetçi istiyor.','guard']
+ ];
+ for(const [needed,type,zone,amount,reason,first] of requests){
+  if(!needed||s.office.jobs.some(j=>j.type===type&&j.zone===zone))continue;
+  const officer=[first,...officers].find(id=>!summary(s,type,zone,amount,id));
+  if(officer)return {type,zone,amount,reason,officer};
  }
 }

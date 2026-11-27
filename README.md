@@ -14,7 +14,8 @@ Proje kökünde `python3 -m http.server 8080 --directory dist` çalıştır, ard
 | Shift + hareket | Koş |
 | Tıkla veya dokun | Zemine yürü veya görevliye yaklaş |
 | E | Yakındaki görevli, at veya tezgâhla etkileş |
-| F | Ferman ver |
+| F | Hüküm ver ve vekil görevlendir |
+| G | Muhafız çağır veya maiyetin yürüyüş nizamını değiştir |
 | M | İstanbul haritasını aç ve hedef seç |
 | J | Vekayinâmeyi aç |
 | Boşluk | Duraklat veya sürdür |
@@ -28,6 +29,7 @@ Saray görevlilerini maiyetine alabilir, görevlerine gönderebilir ve ihsanda b
 | --- | --- |
 | dist/src/data.js | Yer adları, iş noktaları, günlük rotalar ve ferman tanımları |
 | dist/src/geography.js | Dünya koordinatları, bina ayak izleri, kıyılar ve çarpışmalar |
+| dist/src/protocol.js · foot-traffic.js | Maiyet, yol verme ve ulakların eşgüdümü |
 | dist/src/world-route.js | Oyuncu ve halk için ortak yol bulma |
 | dist/src/terrain.js · cartography.js | Dünya karoları, radar ve şehir haritası |
 | dist/src/simulation.js | Dünya saati, emirler, maiyet, NPC davranışı, kayıt ve olaylar |
@@ -50,7 +52,13 @@ Node.js 20 veya yenisiyle proje kökünde `npm test` çalıştır. Testler eşik
 
 ## İstanbul ve oyun içi HUD
 
-Kamera oyuncuyu izler. Saraydan doğuya yürüyerek ahırlara ve çarşıya, güneydoğuya yürüyerek iskeleye ulaşılır. Radara dokunarak haritayı açabilir ve işaret koyabilirsin. Alt çubuktan Hüküm (F), Teşkilat (T), Harita (M), Defter (J) ve Heybe (I) açılır. Esc açık paneli kapatır veya oyun menüsünü açar. Dokunmatik ekranda sol çubuğu sürükleyerek yürür, kenarına çekerek koşarsın. Teşkilat araması tüm kadroda isim, görev ve birim bulur. Kırat’ın yanında E ile bin, R ile in. E ile çeşmede matara doldurabilir, çarşıda ekmek alabilir veya iskele ambarında bir vekile sevk emri verebilirsin.
+Kamera oyuncuyu izler. Saraydan doğuya yürüyerek ahırlara ve çarşıya, güneydoğuya yürüyerek iskeleye ulaşılır. Radara dokunarak haritayı açabilir ve işaret koyabilirsin. Sağ altta Hüküm ver (F) ve Maiyet (G) bulunur. Teşkilat (T), Harita (M), Defter (J) ve Heybe (I) klavyeden veya defter sekmelerinden açılır. Esc açık paneli kapatır veya oyun menüsünü açar. Dokunmatik ekranda sol çubuğu sürükleyerek yürür, kenarına çekerek koşarsın. Teşkilat araması tüm kadroda isim, görev ve birim bulur. Kırat’ın yanında E ile bin, R ile in. E ile çeşmede matara doldurabilir, çarşıda ekmek alabilir veya iskele ambarında bir vekile sevk emri verebilirsin.
+
+## Huzur ve maiyet
+
+Muhafız çağrısı en yakındaki müsait muhafızları yürüyerek huzura getirir. Yakın nizamda iki yanına, alay nizamında daha geniş aralıklarla saf tutarlar. Açık kapılardan geçerken saf daralır. Seni gören halk eğilir, muhafızlar selam verir. Yoluna çıkan kişi yer bulunca kenara çekilir ve başladığı işe döner. Karşılaşan yayalar da dar yolda birbirine yol verir.
+
+Hüküm defterindeki arz, bölgenin kiler kaydı, huzuru ve mevcut muhafız sayısına göre hazırlanır. Mühürlenen hükmü vekilin icra eder. Müsait bir posta görevlisi sonucu icra noktasından alır ve seni bulur. Beklemek istersen ekrandaki hüküm kaydını açıp **Sonraki arza kadar bekle** düğmesine dokunabilirsin. Kayıt yüklendiğinde yoldaki ulak görevini sürdürür.
 
 ## Mesai ve hükümler
 
